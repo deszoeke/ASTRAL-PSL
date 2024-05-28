@@ -1,0 +1,27 @@
+The way I run the code is: 
+
+0. setup_cruise.m sets all the heights, depths, and other needed info for each cruise so that it's not repeated or accidentally wrong in any of the following programs. It should only be entered and read from this program, which is a subroutine called by the following programs.  
+
+1. evalflux.m (reads in all files and does NO corrections. It became too hard to keep modifying this program, so I'd rather do the fixes in step 3 so that we always can see the raw data that come in, unchanged, and we only have to read in the raw data once in this step). Plots will be created automatically as code runs, or you can run the plotting program outside the evalflux code to recreate plots without reading in all the files over and over again. It's in read_map_fix_print_plot> plot_eval.m
+
+2. cat_mats.m (in read_map_fix_print_plot, use a certain number inside program for evalflux files... this step just concatenates files to read in all at once)
+
+3. fixit.m (performs lots of checks that are cruise-specific, and calculates several value-added or derived products, both for checking purposes and to redo things after the means have been corrected for any offsets). 
+
+4a. run the save_nc.m at this point to save a netcdf file of the bulk fluxes and mean met/sea data if you aren't intending on calculating or saving any direct flux data. This program calls assign_nc_info.m to assign all the variable attributes to the nc file. 
+
+4b. 
+
+>>>>  this is where we’re at, close of business today… Ludovic is debugging 4c… but in the meantime, the /flux/Processed/final/ directory has nice netcdf files of 1 and 10 min data (some things still need to be added and updated, there is no ship data in the file for now, because it confuses people, and we think ours is best, but if you want a file with the ship sensors I can make that). You can also orient yourselves with our code to use the matlab files of “all data”... meaning literally everything we measured and everything the ship measured at 1 and 10 min frequency… please don’t distribute these too widely though because we want to train people to use the netcdf data primarily because it has more attributes and documentation and we've widdled that down to all the "bests". For the interested, trusted, experimental users (this email chain for now), I’m letting you know you can make plots and experiment and do a lot with the b1 and b10 matlab structures that were output from step 3 and are located in /flux/Processed/v2/  You can use the code to guide you as to what is what, hopefully <<<<
+
+ 
+
+4c. run_motcorr.m (processes direct flux components, does NOT perform any corrections, so that you only have to read in the high-rate files once. Does not redo anything that's already been done in evalflux. Plots will be created automatically as code runs, or you can run the plotting program outside the motcirr code to recreate plots without reading in all the files over and over again. It's in read_map_fix_print_plot> plot_motcorr.m
+
+5. cat_mats.m (run it again using a different number for the motcorr files, follow comments as guide. This concatenates each day of motcorr files into one file)
+
+6. da_red.m (puts it all together and does more synthesis and checks on direct fluxes... so that you shouldn't need to keep messing with reading in files to get the final product the way you want (i.e. filtering out this or that bad data point). Plots will be created automatically as code runs, or you can run the plotting program outside the evalflux code to recreate plots without reading in all the files over and over again. It's in read_map_fix_print_plot> plot_da_red.m
+
+7. save_nc.m creates a nice netcdf file of everything
+
+8. We've learned we always need to check the nc file and plot all the contents, which I do using a program outside our flux code library just to double check for operability: ASTRAL_flux_check_nc.m
