@@ -77,14 +77,14 @@ for jj=1:zz
         continue
     end
     if cols>1
-        x2(intvl(jj),:) = nanmin(x1(ii:kk,:));
+        x2(intvl(jj),:) = nanmin1(x1(ii:kk,:));
     else
 %         disp(jj);
 %         disp(zz);
         if isempty(x1(ii:kk))== 1
             disp('there is still no data between ii and kk');
         end
-        x2(intvl(jj)) = nanmin(x1(ii:kk));
+        x2(intvl(jj)) = nanmin1(x1(ii:kk));
     end
 
 end

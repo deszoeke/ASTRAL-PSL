@@ -77,9 +77,9 @@ for jj=1:zz
         continue
     end
     if cols>1
-        x2(intvl(jj),:) = nanstd(x1(ii:kk,:));
+        x2(intvl(jj),:) = nanstd1(x1(ii:kk,:));
     else
-        x2(intvl(jj)) = nanstd(x1(ii:kk));
+        x2(intvl(jj)) = nanstd1(x1(ii:kk));
         if isempty(x1(ii:kk))== 1
             disp('there is still no data between ii and kk');
         end

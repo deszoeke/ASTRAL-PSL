@@ -52,13 +52,13 @@ graphdevice = '-dpng'; % select graphic device
 
 % system specific path defs
 sysType = computer;
-username=char(java.lang.System.getProperty('user.name'))
+username=char(java.lang.System.getProperty('user.name'));
 if strncmp(sysType,'MACI64',7) && strncmp(username, 'ethompson', 9)     % set Mac paths
     data_drive = '/Users/ethompson/DATA/';
     path_prog = fullfile(data_drive,cruise,ship,'Scientific_Analysis','programs');
 elseif strncmp(sysType,'MACA64',7) && strncmp(username, 'deszoeks', 8)
-    data_drive = '/Users/sdeszoek/Data/';
-    path_prog = fullfile('/Users/sdeszoek/Projects/ASTRAL/PSL/programs');
+    data_drive = '/Users/deszoeks/Data/';
+    path_prog = fullfile('/Users/deszoeks/Projects/ASTRAL/PSL/programs');
 elseif strncmp(sysType,'PCWIN64',7)  % set PSL DAC paths
     data_drive = 'D:\DATA\';
     path_prog = fullfile(data_drive,cruise,ship,'Scientific_Analysis','programs');
@@ -68,22 +68,25 @@ end
 restoredefaultpath
 cd(fullfile(path_prog,'flux'));
 addpath(genpath(fullfile(path_prog,'flux')));
+path_python = fullfile(path_prog,'python');
 rehash toolboxcache;
 
 % paths relative to data_drive - these should be preexisting
 path_readme = fullfile(data_drive,cruise,'PSL','readme');
 mkdir(path_readme);
-path_python = fullfile(path_prog,'python');
+% path_raw_data = fullfile(data_drive,cruise,ship,'Raw');
 path_raw_data = fullfile(data_drive,cruise,'PSL');
 % ship_met_path = fullfile(data_drive,cruise,ship,'PSL','ship');%notused
 
 % define folders for saving data and plots
-path_proc_data = fullfile(data_drive,cruise,ship,'flux','Processed');
+% path_proc_data = fullfile(data_drive,cruise,ship,'flux','Processed');
+path_proc_data = fullfile(data_drive,cruise,'PSL','flux','Processed');
 mkdir(path_proc_data);
 mkdir(fullfile(path_proc_data,'v0_1min'));
 mkdir(fullfile(path_proc_data,'v0_10min'));
 
-path_raw_images = fullfile(data_drive,cruise,ship,'flux','Raw_Images');
+% path_raw_images = fullfile(data_drive,cruise,ship,'flux','Raw_Images');
+path_raw_images = fullfile(data_drive,cruise,'flux','Raw_Images');
 mkdir(path_raw_images);
 mkdir(fullfile(path_raw_images,'qSpectra'));
 mkdir(fullfile(path_raw_images,'Rwspd'));
@@ -120,22 +123,25 @@ for ddd = jdStart:jdStop
     % convert PSL gps and met3 files to gprm and wxt format with python script
     % python language must be installed on the computer.
     cd(path_working_ddd);
+    % python_exe = '/opt/anaconda3/bin/python '
+    % run python from the condor micromamba environment
+    python_exe = 'micromamba run -n condor python '
 
     fclose('all');
 
     files = dir('gps*.txt');
     if ~isempty(files)
-        system(['/opt/anaconda3/bin/python ',fullfile(path_python,'parseGpsFiles.py')]);
+        system([python_exe,fullfile(path_python,'parseGpsFiles.py')]);
     end
 
     files = dir('hed0*.txt');
     if ~isempty(files)
-        system(['/opt/anaconda3/bin/python ',fullfile(path_python,'parseHedFiles.py')]);
+        system([python_exe,fullfile(path_python,'parseHedFiles.py')]);
     end
     
     files = dir('met3*.txt');
     if ~isempty(files)
-        system(['/opt/anaconda3/bin/python ',fullfile(path_python,'parseWXTFiles.py')]);
+        system([python_exe,fullfile(path_python,'parseWXTFiles.py')]);
     end
     
     
@@ -145,7 +151,7 @@ for ddd = jdStart:jdStop
    
     gprm = read_gps_day(path_working_ddd,ddd,yr_st,PosLims);   
 
-    if length(find(isnan(gprm(:,2))==1)) > 2000
+    if sum(isnan(gprm(:,2))) > 2000
         disp('something wrong with gps');
         stop;
     end
@@ -1072,10 +1078,10 @@ cfields = {'usr';'tau';'hs';'hl';'hb';'hb_son';'hlwebb';'tsr';'qsr';'zo';'zot';'
         lw_dn_clr = (0.52+0.13/60*abs(lat)+(0.082-0.03/60.*abs(lat)).*sqrt(qa)).*(5.67e-8*(ta+273.15).^4);
     
         % Solar model 10 min
-        sw_dn_clr_10 = rs_clear(jd_10min,nanmean(psealevel_10),qa_10,lat_10,lon_10,k1,k2,oz);
+        sw_dn_clr_10 = rs_clear(jd_10min,nanmean1(psealevel_10),qa_10,lat_10,lon_10,k1,k2,oz);
     
         % Solar model 1 min
-        sw_dn_clr = rs_clear(jd_1min,nanmean(psealevel),qa,lat,lon,k1,k2,oz);
+        sw_dn_clr = rs_clear(jd_1min,nanmean1(psealevel),qa,lat,lon,k1,k2,oz);
 
 
     disp(['FINISHED evalflux.m ',cruise,' yearday ',sprintf('%03i',ddd),'.']);

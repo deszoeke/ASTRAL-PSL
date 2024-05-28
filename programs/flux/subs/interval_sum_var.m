@@ -74,9 +74,9 @@ for jj=1:zz
         continue
     end
     if cols>1
-        x2(intvl(jj),:) = nansum(x1(ii:kk,:));
+        x2(intvl(jj),:) = nansum1(x1(ii:kk,:));
     else
-        x2(intvl(jj)) = nansum(x1(ii:kk));
+        x2(intvl(jj)) = nansum1(x1(ii:kk));
     end
 end
 
