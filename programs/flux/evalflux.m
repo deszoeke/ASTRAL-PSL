@@ -34,13 +34,16 @@ have_lat_data = 1;
 % TSGs not good until 1530 UTC June 10th? 
 % went bad again 24th 17:45 UTC
 
-% ASTRAL 2024: jd 119 = 134 for cruise 1
+% ASTRAL 2024: jd 119 - 134 for leg 1
+%              jd 139 -     for leg 2
 
 % I don't know why this will only run one day at a time but I think it has
 % to do with python.... maybe that only matters the first time... since
 % gprm files only need to be created once? Another fix would be to write a
-% separate program to run all the python codes outside of this code. 
-jdStart = 119; jdStop = 119;
+% separate program to run all the python codes outside of this code.
+% YES, matlab can't pipe to [mini]conda environments, so then 
+% one has to run python converters from outside matlab.
+jdStart = 120; jdStop = 134;
 
 min10 = datenum(2018,8,27,0,10,0) - datenum(2018,8,27,0,0,0);
 
@@ -116,7 +119,7 @@ mkdir(fullfile(path_raw_images,'Solar_flux'));
 
 %% loop through days
 for ddd = jdStart:jdStop
-    %% run python scripts on gps, heading, and WXT raw files
+    %% run git  scripts on gps, heading, and WXT raw files
     [m,d] = yd2md(yr, ddd);
     Vdate = [yr, m, d];
     path_working_ddd = fullfile(path_raw_data,[sprintf('%03i',ddd)]);

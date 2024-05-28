@@ -12,19 +12,23 @@ close all;
 
 % **** set cruise info
 cruise = 'ASTRAL_2024';
-ship = 'Thompson';
+% ship = 'Thompson';
+ship = 'PSL';
 
 
-% %%% choose system specific path defs... or define manually below instead
-% sysType = computer;
-% username=char(java.lang.System.getProperty('user.name'));
-% if strncmp(sysType,'MACI64',7)     % set Mac paths
-%     data_drive = '/Users/ethompson/DATA/';
-%     path_prog = fullfile(data_drive,cruise,ship,'Scientific_analysis','programs');
-% elseif strncmp(sysType,'PCWIN64',7)  % set PSD DAC paths
-%     data_drive = 'D:\DATA\';
-%     path_prog = fullfile(data_drive,cruise,ship,'Scientific_analysis','programs');
-% end
+%%% choose system specific path defs... or define manually below instead
+sysType = computer;
+username=char(java.lang.System.getProperty('user.name'));
+if strcmp(username,'deszoeks')
+    data_drive = '/Users/deszoeks/Data/';
+    path_prog = fullfile('/Users/deszoeks/Projects/ASTRAL/PSL/programs');  
+elseif strncmp(sysType,'MACI64',7)     % set Mac paths
+    data_drive = '/Users/ethompson/DATA/';
+    path_prog = fullfile(data_drive,cruise,ship,'Scientific_analysis','programs');
+elseif strncmp(sysType,'PCWIN64',7)  % set PSD DAC paths
+    data_drive = 'D:\DATA\';
+    path_prog = fullfile(data_drive,cruise,ship,'Scientific_analysis','programs');
+end
 
 
 %%% **** decide whether you want to concatenate 1-min files or 10-min files,
@@ -41,10 +45,10 @@ for program_type = 1 % for 1: evalflux or 2: run_motcorr
 
         if file_type == 1
             dir_str = [in_version '_1min']; 
-            thepath = ['/Users/ethompson/DATA/' cruise '/' ship '/flux/Processed/' dir_str '/'];
+            thepath = [fullfile(data_drive,cruise,ship,'/flux/Processed/',dir_str), '/'];
         elseif file_type == 10
             dir_str = [in_version '_10min'];
-            thepath = ['/Users/ethompson/DATA/' cruise '/' ship '/flux/Processed/' dir_str '/'];
+            thepath = [fullfile(data_drive,cruise,ship,'/flux/Processed/',dir_str), '/'];
         end
         save_file_name_type = '';
 
@@ -54,7 +58,7 @@ for program_type = 1 % for 1: evalflux or 2: run_motcorr
         save_version = 'v1'; 
        
         dir_str = 'motcorr';
-        thepath = ['/Users/ethompson/DATA/' cruise '/' ship '/flux/Processed/' dir_str '/'];
+        thepath = [fullfile(data_drive,cruise,ship,'/flux/Processed/',dir_str), '/'];
         save_file_name_type = [dir_str '_'];
     
     end

@@ -8,7 +8,11 @@ setup_cruise; % set default conversion and calibration factors, and cruise speci
 % system specific path defs
 sysType = computer;
 username=char(java.lang.System.getProperty('user.name'));
-if strncmp(sysType,'MACI64',7)     % set Mac paths
+if strcmp(username,'deszoeks')
+    data_drive = '/Users/deszoeks/Data/';
+    path_prog = fullfile('/Users/deszoeks/Projects/ASTRAL/PSL/programs'); 
+    ship = 'PSL';
+elseif strncmp(sysType,'MACI64',7)     % set Mac paths
     data_drive = '/Users/ethompson/DATA/';
     path_prog = fullfile(data_drive,cruise,ship,'Scientific_Analysis','programs');
 end
@@ -21,7 +25,8 @@ addpath(genpath(fullfile(path_prog,'flux')));
 rehash toolboxcache;
 
 % make directory for plots of fixeswarning ('off','MATLAB:MKDIR:DirectoryExists');
-path_fix_plots = fullfile(data_drive,cruise,ship,'flux','Raw_Images','fixes');
+% path_fix_plots = fullfile(data_drive,cruise,ship,'flux','Raw_Images','fixes');
+path_fix_plots = fullfile(data_drive,cruise,'PSL','Raw_Images','fixes');
 mkdir(path_fix_plots);
 
 %% load concatenated cruise data
@@ -281,8 +286,8 @@ jd_1bin = [b1.jd; b1.jd(end) + datenum(0,0,0,0,1,0)];
 t_1bin = jd_1bin + datenum(2023,0,0,0,0,0);
 
 %% rosr data
-have_rosr_data = 1;
-if have_rosr_data == 1
+have_rosr_data = false;
+if have_rosr_data
     %%% ROSR data
 %     ncload2('/Users/ethompson/DATA/ASTRAL_2024/Thompson/ekamsat_rosr_sst_leg1.nc');
 %     % assign all variables to matlab structures
@@ -301,8 +306,16 @@ if have_rosr_data == 1
 
 % ,UTC,SST,lats,lons,tsgT
 
-T = readtable('/Users/ethompson/DATA/ASTRAL_2024/Thompson/rosr_leg1.csv');
-x = load('/Users/ethompson/DATA/ASTRAL_2024/Thompson/rosr_leg1.csv');
+% there is a netcdf file in ASTRAL_2024
+% T = readtable('/Users/ethompson/DATA/ASTRAL_2024/Thompson/rosr_leg1.csv');
+% x = load('/Users/ethompson/DATA/ASTRAL_2024/Thompson/rosr_leg1.csv');
+rosrfile = fullfile(data_drive, cruise, ship, 'rosr_leg1.csv');
+try % one or other read method should work...
+    T = readtable(rosrfile);
+catch
+    x = load(rosrfile);
+end
+
 rosr.year   = table2array(T(:,2));
 rosr.month  = table2array(T(:,3));
 rosr.day    = table2array(T(:,4));
@@ -363,6 +376,7 @@ rosr.t = datenum(rosr.year, rosr.month, rosr.day, rosr.hour, rosr.minute, rosr.s
     end
 
 end
+
 
 % %% precip data
 % load('/Users/ethompson/DATA/ASTRAL_2023/Revelle/pwd/ASTRAL_rain.mat');
@@ -467,7 +481,7 @@ if doing_waves == 1
 end
 %% add or mask data from prior / new structures if needed
 
-if nanmean(b10.hl > 0) < 0
+if nanmean1(b10.hl > 0) < 0
     disp('***need to flip ship or PSL turb fluxes eventually, they are positive by default still');
 %     flips = {'hs_s';'hl_s';'hrain_s'};
 %     for k = 1:length(flips)
@@ -498,12 +512,12 @@ end
 % daytime = 1.5 Z = 14 Z ish
 % nighttime = 15 Z = 1 Z
 wh_night = find(b1.hour > 20); %% 
-tc1_adj2 = nanmean(b1.ta(wh_night)-b1.lw_case_t_1(wh_night)); disp(['tc1_adj = ',sprintf('%4.2f',tc1_adj2)]);
-td1_adj2 = nanmean(b1.ta(wh_night)-b1.lw_dome_t_1(wh_night)); disp(['td1_adj = ',sprintf('%4.2f',td1_adj2)]);
-tc2_adj2 = nanmean(b1.ta(wh_night)-b1.lw_case_t_2(wh_night)); disp(['tc2_adj = ',sprintf('%4.2f',tc2_adj2)]);
-td2_adj2 = nanmean(b1.ta(wh_night)-b1.lw_dome_t_2(wh_night)); disp(['td2_adj = ',sprintf('%4.2f',td2_adj2)]);
-% tc_sh_adj = nanmean(b1.ta(wh_night)-b1.lw_dome_t_s(wh_night)); disp(['tc_sh_adj = ',sprintf('%4.2f',tc_sh_adj)]);
-% td_sh_adj = nanmean(b1.ta(wh_night)-b1.lw_dome_t_s(wh_night)); disp(['td_sh_adj = ',sprintf('%4.2f',td_sh_adj)]);
+tc1_adj2 = nanmean1(b1.ta(wh_night)-b1.lw_case_t_1(wh_night)); disp(['tc1_adj = ',sprintf('%4.2f',tc1_adj2)]);
+td1_adj2 = nanmean1(b1.ta(wh_night)-b1.lw_dome_t_1(wh_night)); disp(['td1_adj = ',sprintf('%4.2f',td1_adj2)]);
+tc2_adj2 = nanmean1(b1.ta(wh_night)-b1.lw_case_t_2(wh_night)); disp(['tc2_adj = ',sprintf('%4.2f',tc2_adj2)]);
+td2_adj2 = nanmean1(b1.ta(wh_night)-b1.lw_dome_t_2(wh_night)); disp(['td2_adj = ',sprintf('%4.2f',td2_adj2)]);
+% tc_sh_adj = nanmean1(b1.ta(wh_night)-b1.lw_dome_t_s(wh_night)); disp(['tc_sh_adj = ',sprintf('%4.2f',tc_sh_adj)]);
+% td_sh_adj = nanmean1(b1.ta(wh_night)-b1.lw_dome_t_s(wh_night)); disp(['td_sh_adj = ',sprintf('%4.2f',td_sh_adj)]);
 
 
 % Even if used, it was only called in evalflux.
@@ -712,11 +726,11 @@ if tsg_other_corrections == 1
     % wh_otter_ssea_depth_3 = find(o3.otter.zS > 2.3 & o3.otter.zS < 3.4);
 
     % % do a mean along depth indicies
-    % o1_mean_at_tsea = nanmean(o1.otter.T(wh_otter_tsea_depth_1,:), 1);
+    % o1_mean_at_tsea = nanmean1(o1.otter.T(wh_otter_tsea_depth_1,:), 1);
     % o1_mean_at_ssea = o1.otter.S(wh_otter_ssea_depth_1,:);
-    % o2_mean_at_tsea = nanmean(o2.otter.T(wh_otter_tsea_depth_2,:), 1);
+    % o2_mean_at_tsea = nanmean1(o2.otter.T(wh_otter_tsea_depth_2,:), 1);
     % o2_mean_at_ssea = o2.otter.S(wh_otter_ssea_depth_2,:);
-    % o3_mean_at_tsea = nanmean(o3.otter.T(wh_otter_tsea_depth_3,:), 1);
+    % o3_mean_at_tsea = nanmean1(o3.otter.T(wh_otter_tsea_depth_3,:), 1);
     % o3_mean_at_ssea = o3.otter.S(wh_otter_ssea_depth_3,:);
     % 
     % o1_top_at_tsea = o1.otter.T(wh_otter_tsea_depth_1(1),:);
@@ -858,14 +872,15 @@ if snake_corrections == 1
 
     wh_pm_r = find(b1.hour >20);
     % wh_pm_o = find(b1.hour >= 16 & b1.hour <= 21 & ID_otter == 1);
-    % dt_snk_otter = b1.tsnk(wh_pm_o) - oTsnake(wh_pm_o);
-    dt_sst_rosr = b1.tskin(wh_pm_r) - b1.tskin_ir(wh_pm_r);
+    % BOGUS IT IN AND GET SOME ICECREAM --- AAAA!!!
+    dt_snk_otter = 0.55; % b1.tsnk(wh_pm_o) - oTsnake(wh_pm_o);
+    % dt_sst_rosr = b1.tskin(wh_pm_r) - b1.tskin_ir(wh_pm_r);
 
     % offset_snk_otter = prctilex(dt_snk_otter, 50);
-    offset_sst_rosr = prctilex(dt_sst_rosr, 50);
+    % offset_sst_rosr = prctilex(dt_sst_rosr, 50);
 
     % tsnk_cor_o = b1.tsnk-offset_snk_otter;
-    tsnk_cor_r = b1.tsnk-offset_sst_rosr;
+    % tsnk_cor_r = b1.tsnk-offset_sst_rosr;
 
     % look at resulting SST changes... but don't apply them because we'll
     % recalculate SST with COARE later anyway.
@@ -884,7 +899,7 @@ if snake_corrections == 1
     %     text(min(xlim)+0.1*diff(xlim), max(ylim)-0.05*diff(ylim), ['med = ' sprintf('%3.3f',offset_snk_otter)],...
     %         'fontsize',16);
     %     text(min(xlim)+0.1*diff(xlim), max(ylim)-0.1*diff(ylim), ...
-    %         ['mean = ' sprintf('%3.3f',nanmean(dt_snk_otter))],'fontsize',16);
+    %         ['mean = ' sprintf('%3.3f',nanmean1(dt_snk_otter))],'fontsize',16);
     % 
     % 
     %     subplot(2,3,2); hold on;
@@ -912,7 +927,7 @@ if snake_corrections == 1
     %         ['rmse = ' sprintf('%3.3f',rmse(tsnk_cor_r(wh_pm_o), oTsnake(wh_pm_o)))],'fontsize',16);
 
         subplot(1,2,1); hold on;
-        plot(b1.tskin(wh_pm_r), b1.tskin_ir(wh_pm_r),'.');
+        % plot(b1.tskin(wh_pm_r), b1.tskin_ir(wh_pm_r),'.');
         ylabel('0 cm SST');
         xlabel('0 cm T_{rosr}');
         ylim([30 32.5]);xlim([30 32.5]);
@@ -923,7 +938,7 @@ if snake_corrections == 1
         text(min(xlim)+0.1*diff(xlim), max(ylim)-0.05*diff(ylim), ['MEDIAN = ' sprintf('%3.3f',offset_sst_rosr)],...
             'fontsize',16);
         text(min(xlim)+0.1*diff(xlim), max(ylim)-0.1*diff(ylim), ...
-            ['MEAN = ' sprintf('%3.3f',nanmean(dt_sst_rosr))],'fontsize',16);
+            ['MEAN = ' sprintf('%3.3f',nanmean1(dt_sst_rosr))],'fontsize',16);
 
         subplot(1,2,2); hold on;
         plot(b1.tskin(wh_pm_r)-offset_sst_rosr, b1.tskin_ir(wh_pm_r),'.');
@@ -2145,8 +2160,8 @@ end
 % b10.lw_dn_clr = (.52+.13/60*abs(f10.lat)+(.082-.03/60*abs(f10.lat)).*...
 %     sqrt(f10.qa)).*(5.67e-8*(f10.ta+C2K).^4);
 
-b10.sw_dn_clr = rs_clear(b10.jd,nanmean(b10.psealevel),b10.qa,b10.lat,b10.lon,k1,k2,oz);
-b1.sw_dn_clr = rs_clear(b1.jd,nanmean(b1.psealevel),b1.qa,b1.lat,b1.lon,k1,k2,oz);
+b10.sw_dn_clr = rs_clear(b10.jd,nanmean1(b10.psealevel),b10.qa,b10.lat,b10.lon,k1,k2,oz);
+b1.sw_dn_clr = rs_clear(b1.jd,nanmean1(b1.psealevel),b1.qa,b1.lat,b1.lon,k1,k2,oz);
 
 b10.lw_dn_clr = (0.52+0.13/60*abs(b10.lat)+(0.082-0.03/60.*abs(b10.lat)).*sqrt(b10.qa)).*(5.67e-8*(b10.ta+273.15).^4);
 b1.lw_dn_clr = (0.52+0.13/60*abs(b1.lat)+(0.082-0.03/60.*abs(b1.lat)).*sqrt(b1.qa)).*(5.67e-8*(b1.ta+273.15).^4);
@@ -2676,9 +2691,10 @@ for j = 1:length(af)
 end
 
 
-%% fix a few PISTON cruise-specific things
-cruise_specific = ;
-if cruise_specific == 1
+%% fix a few cruise-specific things
+
+if strcmp(cruise, 'ASTRAL_2024')
+    % add 0.55 C to the snake!!!
     b1.ta_s(b1.ta_s < 20) = nan;
     b1.psealevel_s(b10.psealevel_s < 999) = nan;
 end
