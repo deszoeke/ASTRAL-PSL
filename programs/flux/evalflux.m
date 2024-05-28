@@ -52,10 +52,13 @@ graphdevice = '-dpng'; % select graphic device
 
 % system specific path defs
 sysType = computer;
-username=char(java.lang.System.getProperty('user.name'));
-if strncmp(sysType,'MACI64',7)     % set Mac paths
+username=char(java.lang.System.getProperty('user.name'))
+if strncmp(sysType,'MACI64',7) && strncmp(username, 'ethompson', 9)     % set Mac paths
     data_drive = '/Users/ethompson/DATA/';
     path_prog = fullfile(data_drive,cruise,ship,'Scientific_Analysis','programs');
+elseif strncmp(sysType,'MACA64',7) && strncmp(username, 'deszoeks', 8)
+    data_drive = '/Users/sdeszoek/Data/';
+    path_prog = fullfile('/Users/sdeszoek/Projects/ASTRAL/PSL/programs');
 elseif strncmp(sysType,'PCWIN64',7)  % set PSL DAC paths
     data_drive = 'D:\DATA\';
     path_prog = fullfile(data_drive,cruise,ship,'Scientific_Analysis','programs');
@@ -68,11 +71,11 @@ addpath(genpath(fullfile(path_prog,'flux')));
 rehash toolboxcache;
 
 % paths relative to data_drive - these should be preexisting
-path_readme = fullfile(data_drive,cruise,ship,'flux','readme');
+path_readme = fullfile(data_drive,cruise,'PSL','readme');
 mkdir(path_readme);
 path_python = fullfile(path_prog,'python');
-path_raw_data = fullfile(data_drive,cruise,ship,'flux','Raw');
-ship_met_path = fullfile(data_drive,cruise,ship,'ship');
+path_raw_data = fullfile(data_drive,cruise,'PSL');
+% ship_met_path = fullfile(data_drive,cruise,ship,'PSL','ship');%notused
 
 % define folders for saving data and plots
 path_proc_data = fullfile(data_drive,cruise,ship,'flux','Processed');
