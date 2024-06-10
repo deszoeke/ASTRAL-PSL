@@ -63,34 +63,41 @@ for hhh = 0:23               % cycle thru 24 hourly sonm files
         [Ptt,~] = psd2(detrend(son(:,5)),Npts,10,hamming(Npts));
         [Ptt,~] = specsmoo(Ptt,fsonic);
 
-        figure;loglog(Fxx,Fxx.*Puu,'b-');
+        % figure;
+        clf()
+        loglog(Fxx,Fxx.*Puu,'b-');
         hold on;
         loglog(Fxx(17:48),((Fxx(17:48)).^(-2/3))./(Fxx(35).^(-2/3)).*Puu(35).*Fxx(35),'r');
         title([jd,' ',hr,' Spectrum of Velocity U']); grid;
         ppath = fullfile(path_raw_images,['uSpectra'],['uSpectrum_',jd,'_',hr,graphformat]);
         print(graphdevice,ppath);
 
-        figure;loglog(Fxx,Fxx.*Pww,'b-');
+        % figure;
+        clf()
+        loglog(Fxx,Fxx.*Pww,'b-');
         hold on;
         loglog(Fxx(17:48),((Fxx(17:48)).^(-2/3))./(Fxx(35).^(-2/3)).*Pww(35).*Fxx(35),'r');
         title([jd,' ',hr,' Spectrum of Velocity W']); grid;
         ppath = fullfile(path_raw_images,['wSpectra'],['wSpectrum_',jd,'_',hr,graphformat]);
         print(graphdevice,ppath);
 
-        figure;loglog(Fxx,Fxx.*Ptt,'b-');
+        % figure;
+        clf()
+        loglog(Fxx,Fxx.*Ptt,'b-');
         hold on;
         loglog(Fxx(17:48),((Fxx(17:48)).^(-2/3))./(Fxx(35).^(-2/3)).*Ptt(35).*Fxx(35),'r');
         title([jd,' ',hr,' Spectrum of Sonic Temperature']); grid;
         ppath = fullfile(path_raw_images,['tSpectra'],['tSpectrum_',jd,'_',hr,graphformat]);
         print(graphdevice,ppath);
 
-        close all;
+        % close all;
     end
 end
 
 if prtit
     jd10 = ddd:10/1440:ddd+1-10/1440;
-    figure; plot(jd10,QC(:,1),'bo-',jd10,QC(:,2),'r.-');
+    clf() % figure; 
+    plot(jd10,QC(:,1),'bo-',jd10,QC(:,2),'r.-');
     title([jd,' Sonic Bad and Missing Counts / 10min']); grid;
     legend('Bad Pnts','Missing','location','best');
     ppath = fullfile(path_raw_images,['sonicQC'],['SonicQC_',jd,graphformat]);
@@ -100,7 +107,9 @@ if prtit
     jd10bin = ddd:10/1440:ddd+1; jd10bin = jd10bin';
     rwspd = sqrt(sonm(:,2).^2 + sonm(:,3).^2);
     temp = interval_avg(sonm(:,1), rwspd, jd10bin);
-    figure; plot(temp(:,1),temp(:,2),'bo-'); grid;
+    
+    clf() % figure;
+    plot(temp(:,1),temp(:,2),'bo-'); grid;
     title([jd,' Sonic Relative Wind Speed, 10min']);
     xlabel('DOY'); ylabel('Rel Wind Spd, m/s');
     ppath = fullfile(path_raw_images,['Rwspd'],['Rwspd_',jd,graphformat]);

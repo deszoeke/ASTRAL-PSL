@@ -23,7 +23,7 @@ warning ('off','MATLAB:MKDIR:DirectoryExists');
 setup_cruise;
 
 
-plot_checks = 1;
+plot_checks = 0;
 have_ship_data = 1;
 have_wxt_data = 0;
 have_lat_data = 1;
@@ -41,9 +41,9 @@ have_lat_data = 1;
 % to do with python.... maybe that only matters the first time... since
 % gprm files only need to be created once? Another fix would be to write a
 % separate program to run all the python codes outside of this code.
-% YES, matlab can't pipe to [mini]conda environments, so then 
+% ^Yes. Matlab can't pipe to [mini]conda environments, so
 % one has to run python converters from outside matlab.
-jdStart = 139; jdStop = 180;
+jdStart = 160; jdStop = 160;
 
 min10 = datenum(2018,8,27,0,10,0) - datenum(2018,8,27,0,0,0);
 
@@ -125,12 +125,14 @@ for ddd = jdStart:jdStop
     path_working_ddd = fullfile(path_raw_data,[sprintf('%03i',ddd)]);
     % convert PSL gps and met3 files to gprm and wxt format with python script
     % python language must be installed on the computer.
+    disp(sprintf('STARTING yearday %03d', ddd))
     cd(path_working_ddd);
     % python_exe = '/opt/anaconda3/bin/python '
     % run python from the condor micromamba environment
-    python_exe = 'micromamba run -n condor python '
-
+    python_exe = 'micromamba run -n condor python '; % doesn't work from matlab
+    
     fclose('all');
+    ifig = 0; % reset figure counter for each day
 
     files = dir('gps*.txt');
     if ~isempty(files)
@@ -154,9 +156,10 @@ for ddd = jdStart:jdStop
    
     gprm = read_gps_day(path_working_ddd,ddd,yr_st,PosLims);   
 
+
     if sum(isnan(gprm(:,2))) > 2000
-        disp('something wrong with gps');
-        stop;
+        warning('gps gprm count < 2000');
+        % stop  % errors and stops partial days
     end
 
     % read PSL sonic - sonm is 1Hz 86400x5: 1 sec data
@@ -185,7 +188,7 @@ for ddd = jdStart:jdStop
        
     % MOTION PLOT - 1 Hz
     if plot_checks == 1
-        figure;
+        ifig = figure( ifig + 1 ).Number;
         subplot(3,2,1);plot(motm(:,1),motm(:,2),'.','markersize',2);ylabel('accx (m.s^-^2)');
         ylim([-5 5]);set(gca(gcf),'XTick',ddd:2/24:ddd+1); datetick('x','HH:MM','keepticks');
         xax = get(gca(gcf),'XTickLabel'); xax(end,:)='24:00'; set(gca(gcf),'XTickLabel',xax(:,1:2));
@@ -455,7 +458,7 @@ for ddd = jdStart:jdStop
         'licor_agc';'licor_rhoa_dry';'licor_qa';'licor_qa_dry';'licor_h2o';'licor_h2o_mr';...
         'licor_tbox';'licor_pbox';'licor_co2';'licor_co2_mr';'licor_rh'};
     pathplot = '/Users/ethompson/DATA/ASTRAL_2024/Revelle/flux/Raw_Images/check/';
-    figure;
+    ifig = figure( ifig + 1 ).Number;
     counter = 1;
     nc = length(f_psl);
     for i = 1:4:nc
@@ -514,7 +517,7 @@ for ddd = jdStart:jdStop
         
         plot_ship_vars = 0;
         if plot_ship_vars == 1
-        figure;
+        ifig = figure( ifig + 1 ).Number;
         counter = 1;
         thefields = fields(orderfields(ship_day));
         nc = length(thefields);
@@ -582,7 +585,7 @@ for ddd = jdStart:jdStop
 % cruises. 
         [ship_avg.wspd,ship_avg.wdir] = uv_to_sd(ship_avg.Un, ship_avg.Uw); 
 
-        figure;
+        ifig = figure( ifig + 1 ).Number;
         subplot(2,2,1);plot(ship_day.t, ship_day.rUn, ship_avg.t, ship_avg.rUn); title('rUn');
         subplot(2,2,2);plot(ship_day.t, ship_day.rUw, ship_avg.t, ship_avg.rUw); title('rUw');
         subplot(2,2,3);plot(ship_day.t, ship_day.Un, ship_avg.t, ship_avg.Un); title('Un');
@@ -1054,7 +1057,8 @@ cfields = {'usr';'tau';'hs';'hl';'hb';'hb_son';'hlwebb';'tsr';'qsr';'zo';'zot';'
 
     %% BULK FRICTION VELOCITY
     if plot_checks == 1
-        figure; plot(jd_10min, usr_10,'b','linewidth',1); xlabel('Hour (UTC)'); ylabel('u_*(m/s)'); xlim([ddd ddd+1]);
+        ifig = figure( ifig + 1 ).Number;
+        plot(jd_10min, usr_10,'b','linewidth',1); xlabel('Hour (UTC)'); ylabel('u_*(m/s)'); xlim([ddd ddd+1]);
         title(sprintf('%s (%04i-%02i-%02i, DOY%03i).  PSL Friction Velocity from COARE algorithm',cruise_str,Vdate(1),Vdate(2),Vdate(3),ddd),'FontWeight','Bold','Interpreter','none');
         set(gca(gcf),'XTick',ddd:2/24:ddd+1);datetick('x','HH:MM','keepticks'); grid;
         xax = get(gca(gcf),'XTickLabel'); xax(end,:)='24:00'; set(gca(gcf),'XTickLabel',xax(:,1:2));

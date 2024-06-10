@@ -27,12 +27,13 @@ setup_cruise;
 % system specific path defs
 sysType = computer;
 username=char(java.lang.System.getProperty('user.name'));
-if strncmp(sysType,'MACI64',7)     % set Mac paths
+if strcmp(username,'deszoeks')
+    data_drive = '/Users/deszoeks/Data/';
+    path_prog = fullfile('/Users/deszoeks/Projects/ASTRAL/PSL/programs'); 
+    ship = 'PSL';
+elseif strncmp(sysType,'MACI64',7)     % set Mac paths
     data_drive = '/Users/ethompson/DATA/';
-    path_prog = fullfile(data_drive,cruise,ship,'Scientific_analysis','programs');
-elseif strncmp(sysType,'PCWIN64',7)  % set PSL DAC paths
-    data_drive = 'D:\DATA\';
-    path_prog = fullfile(data_drive,cruise,ship,'Scientific_analysis','programs');
+    path_prog = fullfile(data_drive,cruise,ship,'Scientific_Analysis','programs');
 end
 
 % matlab script path

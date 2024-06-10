@@ -109,7 +109,7 @@ if plot_tsgs == 1
     xlim([min(b1.t) max(b1.t)]);
     datetick('x','DD','keeplimits');
     ylabel('T ^oC')
-    title('ASTRAL 2023 raw seawater T, S');
+    title('ASTRAL 2024 raw seawater T, S');
     
     subplot(2,1,2);
     plot(b1.t, b1.ssea_s);
@@ -143,16 +143,16 @@ if tsg_screen == 1
     % not trustworthy. 
     bad_tsg_1 = find(b1.t <= datenum(2023,6,10,18,0,0) | b1.t >= datenum(2023,6,24,12,0,0));
     bad_tsg_10 = find(b10.t <= datenum(2023,6,10,18,0,0) | b10.t >= datenum(2023,6,24,12,0,0));
-    b1.tsea_s(bad_tsg_1) = nan;
-    b1.tsea_in_s(bad_tsg_1) = nan;
-    b1.ssea_s(bad_tsg_1) = nan;
+    % b1.tsea_s(bad_tsg_1) = nan;
+    % b1.tsea_in_s(bad_tsg_1) = nan;
+    % b1.ssea_s(bad_tsg_1) = nan;
 %     b1.ssea_s(bad_tsg_1) = nan;
 %     b1.csea1_s(bad_tsg_1) = nan;
 %     b1.csea2_s(bad_tsg_1) = nan;
 %     b1.flowsea1_s(bad_tsg_1) = nan;
 %     b1.flowsea2_s(bad_tsg_1) = nan;
-    b10.tsea_s(bad_tsg_10) = nan;
-    b10.tsea_in_s(bad_tsg_10) = nan;
+    % b10.tsea_s(bad_tsg_10) = nan;
+    % b10.tsea_in_s(bad_tsg_10) = nan;
 %     b10.ssea_s(bad_tsg_10) = nan;
 %     b10.ssea_s(bad_tsg_10) = nan;
 %     b10.csea1_s(bad_tsg_10) = nan;
@@ -207,7 +207,7 @@ if tsg_screen == 1
         xlim([min(b1.t) max(b1.t)]);
         datetick('x','DD','keeplimits');
         ylabel('T ^oC')
-        title('ASTRAL 2023 good/better subset of seawater T, S, flowrate');
+        title('ASTRAL 2024 good/better subset of seawater T, S, flowrate');
         legend('TSG 1','TSG 2','snake','uCTD 4 m','location','south','orientation','horizontal');
     
         subplot(3,1,2);
@@ -237,17 +237,7 @@ end
 
 %% EEZ: NaN the data while in EEZ
 remove_eez = 0;
-if remove_eez == 1
-
-% Janet says that TSGs weren't turned on until the ship was outside the EEZ
-% anyway, so the data start time is equivalent to the EEZ. on top of that,
-% Devmi says: All data stopped on June 25 11:30am local time 
-% EEZ Exit: 10 June around 1600 UTC
-% EEZ Entry: 24 June around 1800 UTC
-
-% %%% good looking data within sampling area
-% EEZ = find(b1.t < datenum(2023,6,10,18,0,0) | b1.t >= datenum(2023,6,24,12,0,0));
-% EEZ_10 = find(b10.t < datenum(2023,6,10,18,0,0) | b10.t >= datenum(2023,6,24,12,0,0));
+if remove_eez
 
 EEZ = find(b1.t < datenum(2023,6,9,12,0,0) | b1.t >= datenum(2023,6,25,0,0,0));
 EEZ_10 = find(b10.t < datenum(2023,6,9,12,0,0) | b10.t >= datenum(2023,6,25,0,0,0));
@@ -663,6 +653,7 @@ if tsg_other_corrections == 1
     %%% and whether to correct the TSG to the snake or Otter or ROSR
     % cor_type_snk = 'o';  % correct to otter
     cor_type_tsg = 's';  % correct to snake... meaning correct to otter :)
+    cor_type_snk = 'b';  % chocolate snake to bowchain
 
     % cor_type = 'o';
 
@@ -873,12 +864,14 @@ if snake_corrections == 1
     wh_pm_r = find(b1.hour >20);
     % wh_pm_o = find(b1.hour >= 16 & b1.hour <= 21 & ID_otter == 1);
     % BOGUS IT IN AND GET SOME ICECREAM --- AAAA!!!
-    dt_snk_otter = 0.55; % b1.tsnk(wh_pm_o) - oTsnake(wh_pm_o);
+    % dt_snk_otter = 0.55; % b1.tsnk(wh_pm_o) - oTsnake(wh_pm_o);
+    dt_snk_bowchain = 0.52; % Ankitha & Simon ASTRAL 2024
     % dt_sst_rosr = b1.tskin(wh_pm_r) - b1.tskin_ir(wh_pm_r);
 
     % offset_snk_otter = prctilex(dt_snk_otter, 50);
-    % offset_sst_rosr = prctilex(dt_sst_rosr, 50);
-
+    offset_sst_rosr = dt_snk_bowchain; %prctilex(dt_sst_rosr, 50);
+    offset_sst_bowchain = dt_snk_bowchain; % ASTRAL 2024
+    
     % tsnk_cor_o = b1.tsnk-offset_snk_otter;
     % tsnk_cor_r = b1.tsnk-offset_sst_rosr;
 
@@ -935,22 +928,23 @@ if snake_corrections == 1
         title('SST offset');
         axis square;
         grid on;
-        text(min(xlim)+0.1*diff(xlim), max(ylim)-0.05*diff(ylim), ['MEDIAN = ' sprintf('%3.3f',offset_sst_rosr)],...
+        text(min(xlim)+0.1*diff(xlim), max(ylim)-0.05*diff(ylim), ['EyeBall = ' sprintf('%3.3f',offset_sst_bowchain)],...
             'fontsize',16);
-        text(min(xlim)+0.1*diff(xlim), max(ylim)-0.1*diff(ylim), ...
-            ['MEAN = ' sprintf('%3.3f',nanmean1(dt_sst_rosr))],'fontsize',16);
+        % text(min(xlim)+0.1*diff(xlim), max(ylim)-0.1*diff(ylim), ...
+        %     ['MEAN = ' sprintf('%3.3f',nanmean1(dt_sst_rosr))],'fontsize',16);
 
-        subplot(1,2,2); hold on;
-        plot(b1.tskin(wh_pm_r)-offset_sst_rosr, b1.tskin_ir(wh_pm_r),'.');
-        ylabel('0 cm SST');
-        xlabel('0 cm T_{rosr}');
-        ylim([30 32.5]);xlim([30 32.5]);
-        plot(ylim, ylim, '--','color',rgb('skyblue'));
-        title('Corrected SST: rosr');
-        axis square;
-        grid on;
-        text(min(xlim)+0.1*diff(xlim), max(ylim)-0.05*diff(ylim), ...
-            ['RMSE = ' sprintf('%3.3f',rmse(b1.tskin(wh_pm_r)-offset_sst_rosr, b1.tskin_ir(wh_pm_r)))],'fontsize',16);
+        % TODO: no ROSR data yet - ASTRAL
+        % subplot(1,2,2); hold on;
+        % plot(b1.tskin(wh_pm_r)-offset_sst_rosr, b1.tskin_ir(wh_pm_r),'.');
+        % ylabel('0 cm SST');
+        % xlabel('0 cm T_{rosr}');
+        % ylim([30 32.5]);xlim([30 32.5]);
+        % plot(ylim, ylim, '--','color',rgb('skyblue'));
+        % title('Corrected SST: rosr');
+        % axis square;
+        % grid on;
+        % text(min(xlim)+0.1*diff(xlim), max(ylim)-0.05*diff(ylim), ...
+        %     ['RMSE = ' sprintf('%3.3f',rmse(b1.tskin(wh_pm_r)-offset_sst_rosr, b1.tskin_ir(wh_pm_r)))],'fontsize',16);
 
 %         subplot(1,3,3); hold on;
 %         plot(b1.tskin(wh_pm_r)-offset_snk_otter, b1.tskin_ir(wh_pm_r),'.');
@@ -966,10 +960,10 @@ if snake_corrections == 1
         print(graphdevice,[path_fix_plots '/snake_T_' cruise graphformat]);
     end
 
-    plot_snake_before_after = 1;
+    plot_snake_before_after = 0;
     if plot_snake_before_after == 1
         figure;
-        plot(b1.t, b1.tsnk,'o', b1.t, b1.tsnk - offset_sst_rosr,'-');
+        plot(b1.t, b1.tsnk,'o', b1.t, b1.tsnk - offset_sst_bowchain,'-');
         hold on;
         plot(b1.t, b1.tsea_in_s, b1.t, b1.tsea_s);
         legend('snk original','snk corr','TSG intake','TSG','location','best');
@@ -983,8 +977,8 @@ if snake_corrections == 1
     %% choose corrected snake value and save... based on "other" data
     cor_type_snk = 'r';
     if cor_type_snk == 'r'
-        % correct tsnk to ROSR
-        b1.tsnk = b1.tsnk - offset_sst_rosr; 
+        % correct tsnk to ROSR - ROSR measures skin T, snake is sub-skin!
+        b1.tsnk = b1.tsnk - offset_sst_bowchain; 
     %     b1.tskin = b1.tskin - offset_sst_rosr; %%% this is going to get redone
     %     anyway
     elseif cor_type_snk == 'o'
@@ -992,6 +986,8 @@ if snake_corrections == 1
         b1.tsnk = tsnk_cor_o; 
     %     b1.tskin = b1.tskin - offset_snk_otter; %%% this is going to get
     %     redone anyway
+    elseif cor_type_snk == 'b'
+        b1.tsnk = b1.tsnk - offset_sst_bowchain;
     end
 
     % redo qsnk from tsnk... uses same code as COARE
@@ -1854,7 +1850,7 @@ end
 
 fix_humidities = 0;
 plot_rh = 0;
-if fix_humidities == 1
+if fix_humidities
     
     disp('fixing humidity values across sensors');
     

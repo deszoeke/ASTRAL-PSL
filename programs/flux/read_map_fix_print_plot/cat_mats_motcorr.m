@@ -11,8 +11,11 @@
 clear all;
 close all;
 
-cruise = 'PISTON_2019';
-ship = 'Sally_Ride';
+% **** set cruise info
+cruise = 'ASTRAL_2024';
+% ship = 'Thompson';
+ship = 'PSL';
+
 save_version = 'v0';
 in_version = 'v0';
 

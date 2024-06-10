@@ -34,7 +34,7 @@ end
 %%% **** decide whether you want to concatenate 1-min files or 10-min files,
 %%% or both... comment out whichever is not desired
 for file_type = [1 10]  % for both 1-min and 10-min data
-for program_type = 1 % for 1: evalflux or 2: run_motcorr
+for program_type = 2 % for 1: evalflux or 2: run_motcorr
     
     %%% %%% decide which directory to look into for .mat files depending on
     %%% what data is being concatenated and which program made input files

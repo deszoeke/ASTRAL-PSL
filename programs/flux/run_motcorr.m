@@ -113,6 +113,8 @@ chemistry, you don't see peaks, so looking for peak is not possible. Need
 to measure lag directly in that case. 
 memory failures, the serial interface would fail, the ethernet would fai 
 
+beware matlab xcorr just splices out NaNs, if you have them. Not good for
+finding lags.
 %}
 
 %% Initialize run parameters
@@ -123,13 +125,19 @@ warning ('off','MATLAB:MKDIR:DirectoryExists');
 setup_cruise;
 
 % Dates: ASTRAL 2024
-% stjd = 119; endjd = 134;
-stjd = 119; endjd = 119;
+% stjd = 119; endjd = 134; % leg 1
+% stjd = 139; endjd = 161; % leg 2
+stjd = 160; endjd = 160;
+
 
 % system specific path defs
 sysType = computer;
 username=char(java.lang.System.getProperty('user.name'));
-if strncmp(sysType,'MACI64',7)     % set Mac paths
+if strcmp(username,'deszoeks')
+    data_drive = '/Users/deszoeks/Data/';
+    path_prog = fullfile('/Users/deszoeks/Projects/ASTRAL/PSL/programs'); 
+    ship = 'PSL';
+elseif strncmp(sysType,'MACI64',7)     % set Mac paths
     data_drive = '/Users/ethompson/DATA/';
     path_prog = fullfile(data_drive,cruise,ship,'Scientific_Analysis','programs');
 elseif strncmp(sysType,'PCWIN64',7)  % set PSL DAC paths
@@ -229,6 +237,9 @@ infile_10 = [indir cruise '_10min_nav_met_sea_flux_' in_version '.mat'];
 load(infile_10);
 infile_1 = [indir cruise '_1min_nav_met_sea_flux_' in_version '.mat'];
 load(infile_1);
+
+parens = @(x,i) x(i)
+
 %% ----------Main loop----------
 for ddd=stjd:endjd  % iterate over days
     [m,d] = yd2md(yr, ddd);
@@ -294,23 +305,33 @@ for ddd=stjd:endjd  % iterate over days
         % ship heading interpolated to 10 Hz. 
         hed_10Hz_b = interp1(b10.jd, b10.hed_s, jd_10Hz)*d2r;
         
-        if ddd == 162 && hhh >=5 && hhh <= 6
-            disp('replacing nan in heading on day 162 hr 05 or hr 06 with ship heading interpolated to 10 Hz');
-            bad_hed = find(isnan(hed_10Hz_r) == 1);
-            hed_10Hz_r(bad_hed) = hed_10Hz_b(bad_hed);
+        if ddd == 159 && hhh >=6 || hhh == 13 % ASTRAL
+            bad_hed = find(isnan(hed_10Hz_r));
+            if ~isempty(bad_hed)
+                disp(['replacing nan in heading on day ' ddd ' hr ' hhh ' with ship heading interpolated to 10 Hz'])
+                hed_10Hz_r(bad_hed) = hed_10Hz_b(bad_hed);
+            end
         end
         
         %% E98  rfs corrections, with decorr if desired
         % NOTE: why we don't apply the wind speed-dependent or not flow
         % distortion corrections here too-- because only the fluctuations
         % matter... relative to each other... or because it's in ship reference frame
-        % motcorr can handle missing heading because there is a check in it
+        % motcorr3 can handle missing heading because there is a check in it
         % before it runs angles.m, which adjusts the length of all the
         % arrays to still run properly.
         % use motcorr3, decorr in 10 min segments
-       [uvw,tson_10Hz,accplat,uvwplat,xyzplat,euler,plat_rate,lagPnts,mu,uvw_raw,uvw_motcorr,f1,ff2] = ...
-                motcorr3_ok(son,mot,hed_10Hz_r,sens_disp,fsonic,decorr);
 
+        try
+            % motcorr3_ok can't handle missings
+            [uvw,tson_10Hz,accplat,uvwplat,xyzplat,euler,plat_rate,lagPnts,mu,uvw_raw,uvw_motcorr,f1,ff2] = ...
+                motcorr3_ok(son,mot,hed_10Hz_r,sens_disp,fsonic,decorr);
+        catch
+            % doesn't crash for missing data
+
+            [uvw,tson_10Hz,accplat,uvwplat,xyzplat,euler,plat_rate,lagPnts,mu,uvw_raw,uvw_motcorr,f1,ff2] = ...
+                motcorr3(son,mot,hed_10Hz_r,sens_disp,fsonic,decorr);
+        end
             % tson_10Hz isn't corrected for humidity cross talk because the
             % correction is more accurate at 10-min and with bulk values.
             % The correction is done later
@@ -401,7 +422,7 @@ for ddd=stjd:endjd  % iterate over days
         %%% "x" so that things don't get overwritten or confused yet. There
         %%% are a lot of variables already ending in a and b for different
         %%% flux methods, so stay away from a. and b. here
-        these = find(b10.t >= t_10min(1) & b10.t <= t_10min(end));
+        these = find((b10.t >= t_10min(1)) & (b10.t <= t_10min(end)));
         these1 = find(b1.t >= t_1min(1) & b1.t <= t_1min(end));
         fields_f10 = fields(b10);
         nf = length(fields_f10);
@@ -557,7 +578,7 @@ for ddd=stjd:endjd  % iterate over days
         end
 
         % apply mean correction from fixit? Does it matter? 
-        qa_10Hz_raw = qa_10Hz_raw - 0.600969;
+        qa_10Hz_raw = qa_10Hz_raw - 0.600969; % NOT ALREADY DONE??
         
         % decorrelate licor water vapor vars w/respect to 3-axis motion
         if decorr

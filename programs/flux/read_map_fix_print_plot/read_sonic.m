@@ -79,9 +79,12 @@ if exist(dfl,'file')==2
     dd = zeros(1,6);
     if (all(isfinite(tsons)))
         for bb=1:6     % get indices in tsons for start/end of each 10-min seg
-            cc(bb) = find(tsons > st(bb),1,'first');
-            dd(bb) = find(tsons < st(bb)+10/1440,1,'last');
-            badPnts(bb) = sum(isnan(u(cc(bb):dd(bb)))); % sum Trues (==1) from isnan
+            tmp = find(tsons > st(bb),1,'first');
+            if ~isempty(tmp)
+                cc(bb) = find(tsons > st(bb),1,'first');
+                dd(bb) = find(tsons < st(bb)+10/1440,1,'last');
+                badPnts(bb) = sum(isnan(u(cc(bb):dd(bb)))); % sum Trues (==1) from isnan
+            end
         end
     end
 

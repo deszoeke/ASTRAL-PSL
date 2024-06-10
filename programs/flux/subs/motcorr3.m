@@ -51,7 +51,7 @@ xyzplat(:,wh_heading_valid) = accplat_valid;
 accplat(:,wh_heading_valid) = accplat_valid;
 
 % rotate uvw into earth frame
-R = [sens_disp(1); sens_disp(2); sens_disp(3)] * ones(1,length(son_vel));
+R = [sens_disp(1); sens_disp(2); sens_disp(3)] * ones(1,lengt(son_vel));
 R_valid = R(:,wh_heading_valid);
 uvw_valid = neaqs_trans(son_vel(:,wh_heading_valid)+cross(plat_rate(:,wh_heading_valid),R_valid),euler_valid,0);
 uvw = nan(3,36000);

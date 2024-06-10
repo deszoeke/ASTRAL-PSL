@@ -222,39 +222,74 @@ pir2 = therm2 + sig_sb*(Tc2+C2K).^4 - k1*sig_sb*((Td2+C2K).^4-(Tc2+C2K).^4);
 %% filter out bad values in T, RH and P
 Rhvais(Rhvais>110) = NaN;
 Rhvais = replace_NaN_nearest_neighbor(Rhvais);
-[Rhvais, ~] = despike2(Rhvais);
+if length(Rhvais) > 7
+    [Rhvais, ~] = despike2(Rhvais);
+end
 
 Tvais(Tvais>45) = NaN;
 Tvais = replace_NaN_nearest_neighbor(Tvais);
-[Tvais, ~] = despike2(Tvais);
+if length(Tvais) > 7
+    [Tvais, ~] = despike2(Tvais);
+end
 
 slp = replace_NaN_nearest_neighbor(slp);
-[slp,~] = despike2(slp);
+if length(slp) > 7
+    [slp,~] = despike2(slp);
+end
 
 pa = replace_NaN_nearest_neighbor(pa);
-[pa,~] = despike2(pa);
+if length(slp) > 7
+    [pa,~] = despike2(pa);
+end
 
 %% interp to exact 1-min timestamp and format output
 met = NaN(60,20);
 met(:,1) = jd_ref;
-met(:,2) = interp1(jd_pc_1',Tvais,jd_ref','nearest','extrap');
-met(:,3) = interp1(jd_pc_1',Rhvais,jd_ref','nearest','extrap');
-met(:,4) = interp1(jd_pc_2',Tsea,jd_ref','nearest','extrap');
-met(:,5) = interp1(jd_pc_2',psp1,jd_ref','nearest','extrap');
-met(:,6) = interp1(jd_pc_2',pir1,jd_ref','nearest','extrap');
-met(:,7) = interp1(jd_pc_2',psp2,jd_ref','nearest','extrap');
-met(:,8) = interp1(jd_pc_2',pir2,jd_ref','nearest','extrap');
-met(:,9) = interp1(jd_pc_2',Tc1,jd_ref','nearest','extrap');
-met(:,10) = interp1(jd_pc_2',Td1,jd_ref','nearest','extrap');
-met(:,11) = interp1(jd_pc_2',Tc2,jd_ref','nearest','extrap');
-met(:,12) = interp1(jd_pc_2',Td2,jd_ref','nearest','extrap');
-met(:,13) = interp1(jd_pc_1',org,jd_ref','nearest','extrap');
-met(:,14) = interp1(jd_pc_2',slp,jd_ref','nearest','extrap');
-met(:,15) = interp1(jd_pc_1',aspir_on,jd_ref','nearest','extrap');
-met(:,16) = interp1(jd_pc_1',org_carrier,jd_ref','nearest','extrap');
-met(:,17) = interp1(jd_pc_1',org_V,jd_ref','nearest','extrap');
-met(:,18) = interp1(jd_pc_2',therm1,jd_ref','nearest','extrap');
-met(:,19) = interp1(jd_pc_2',therm2,jd_ref','nearest','extrap');
-met(:,20) = interp1(jd_pc_2',pa,jd_ref','nearest','extrap');
+if length(jd_pc_1) >= 2
+    met(:,2) = interp1(jd_pc_1',Tvais,jd_ref','nearest','extrap');
+    met(:,3) = interp1(jd_pc_1',Rhvais,jd_ref','nearest','extrap');
+    met(:,13) = interp1(jd_pc_1',org,jd_ref','nearest','extrap');
+    met(:,15) = interp1(jd_pc_1',aspir_on,jd_ref','nearest','extrap');
+    met(:,16) = interp1(jd_pc_1',org_carrier,jd_ref','nearest','extrap');
+    met(:,17) = interp1(jd_pc_1',org_V,jd_ref','nearest','extrap');
+else  % can't interpolate fewer than 2 points, even nearest
+    met(:,2)  = Tvais;
+    met(:,3)  = Rhvais;
+    met(:,13) = org;
+    met(:,15) = aspir_on;
+    met(:,16) = org_carrier;
+    met(:,17) = org_V;
+end
+
+if length(jd_pc_2) >= 2
+    met(:,4)  = interp1(jd_pc_2',Tsea  ,jd_ref','nearest','extrap');
+    met(:,5)  = interp1(jd_pc_2',psp1  ,jd_ref','nearest','extrap');
+    met(:,6)  = interp1(jd_pc_2',pir1  ,jd_ref','nearest','extrap');
+    met(:,7)  = interp1(jd_pc_2',psp2  ,jd_ref','nearest','extrap');
+    met(:,8)  = interp1(jd_pc_2',pir2  ,jd_ref','nearest','extrap');
+    met(:,9)  = interp1(jd_pc_2',Tc1   ,jd_ref','nearest','extrap');
+    met(:,10) = interp1(jd_pc_2',Td1   ,jd_ref','nearest','extrap');
+    met(:,11) = interp1(jd_pc_2',Tc2   ,jd_ref','nearest','extrap');
+    met(:,12) = interp1(jd_pc_2',Td2   ,jd_ref','nearest','extrap');
+    met(:,14) = interp1(jd_pc_2',slp   ,jd_ref','nearest','extrap');
+    met(:,18) = interp1(jd_pc_2',therm1,jd_ref','nearest','extrap');
+    met(:,19) = interp1(jd_pc_2',therm2,jd_ref','nearest','extrap');
+    met(:,20) = interp1(jd_pc_2',pa    ,jd_ref','nearest','extrap');
+else
+    met(:,4)  = Tsea  ;
+    met(:,5)  = psp1  ;
+    met(:,6)  = pir1  ;
+    met(:,7)  = psp2  ;
+    met(:,8)  = pir2  ;
+    met(:,9)  = Tc1   ;
+    met(:,10) = Td1   ;
+    met(:,11) = Tc2   ;
+    met(:,12) = Td2   ;
+    met(:,14) = slp   ;
+    met(:,18) = therm1;
+    met(:,19) = therm2;
+    met(:,20) = pa    ;
+end
+
 
 end
