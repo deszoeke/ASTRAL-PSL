@@ -120,7 +120,7 @@ annotation(gcf,'textbox',[0.007154 0.01077 0.4498 0.02462],'String',{'NOAA PSL p
 ppath = fullfile(png_path,['009_',cruise,'_SLP_Comparison.png']);
 print('-dpng',ppath);
 
-disp(['Mean difference in SLP, NOAA - ship = ',sprintf('%6.2f',nanmean(b10.psealevel-b10.psealevel_s))]);
+disp(['Mean difference in SLP, NOAA - ship = ',sprintf('%6.2f',nanmean1(b10.psealevel-b10.psealevel_s))]);
 
 %% tilt angle - flow distortion angle derived from the motion correction script
 % this is tilt angle prior to ship speed correction
@@ -245,15 +245,16 @@ annotation(gcf,'textbox',[0.007154 0.01077 0.4498 0.02462],'String',{'NOAA PSL p
 ppath = fullfile(png_path,['020_',cruise,'_IR_Rad.png']);
 print('-dpng',ppath);
 
-%% rain rate
-figure;
-plot(b10.t,b10.prate,'r',b10.t,b10.prate_s,'b'); grid; xlim([t0 tN]);
-ylabel('mm/hr'); datetick('x','mm/dd','keeplimits');
-legend('NOAA','ship','location','eastoutside');
-title([ptitle,' rain rate']);
-annotation(gcf,'textbox',[0.007154 0.01077 0.4498 0.02462],'String',{'NOAA PSL plot 21'},'FontSize',10,'FitBoxToText','off','LineStyle','none');
-ppath = fullfile(png_path,['021_',cruise,'_Rain.png']);
-print('-dpng',ppath);
+
+%% rain rate - no ship rain on TGT in ASTRAL 2024
+% figure;
+% plot(b10.t,b10.prate,'r',b10.t,b10.prate_s,'b'); grid; xlim([t0 tN]);
+% ylabel('mm/hr'); datetick('x','mm/dd','keeplimits');
+% legend('NOAA','ship','location','eastoutside');
+% title([ptitle,' rain rate']);
+% annotation(gcf,'textbox',[0.007154 0.01077 0.4498 0.02462],'String',{'NOAA PSL plot 21'},'FontSize',10,'FitBoxToText','off','LineStyle','none');
+% ppath = fullfile(png_path,['021_',cruise,'_Rain.png']);
+% print('-dpng',ppath);
 
 %% SOG
 figure;
@@ -358,7 +359,7 @@ print('-dpng',ppath);
 figure('position',[1,1,1450,800]);
 subplot(3,1,1);
     plot(b10.t, b10.hs,'r-', d10.t, d10.hs_ida,'om', d10.t, d10.hs_idb, 'oc',...
-        d10.t, d10.hs_id,'*b', d10.t, d10.hs_cov_sds,'og', d10.t, d10.hs_cov,'*k');
+        d10.t, d10.hs_id,'*b', d10.t, -d10.hs_cov_sds,'og', d10.t, -d10.hs_cov,'*k');
     grid; xlim([t0 tN]);
     datetick('x','mm/dd','keeplimits'); ylabel('W m{-2}');
     legend('bulk','ID a','ID b','ID combo','cov SdS','cov','location','eastoutside');
@@ -406,12 +407,12 @@ print('-dpng',ppath);
 %% transfer coefficients w'T'
 % plot of w't'/u10n vs delta theta from surface - air should be linear, slope is ~ch10n, and
 % x-intercept is measure of bias in deltaT measurement
-wT_u = d10.wT_cov./b10.u10n;
-wT_sds_u = d10.wT_cov_sds./b10.u10n;
+wT_u = d10.wt_cov./b10.u10n;
+wT_sds_u = d10.wt_cov_sds./b10.u10n;
 % dts = b10.tskin-theta10;  % Delta T, use potential temp at 10m... and theta 0 (this was wrong before)
 % wT plot criteria
 clear idt;
-idt = (isfinite(wT_u) & isfinite(b10.dtheta) & isfinite(d10.wT_cov_sds) &...
+idt = (isfinite(wT_u) & isfinite(b10.dtheta) & isfinite(d10.wt_cov_sds) &...
     b10.dtheta<3 & b10.dtheta>-2 & wT_u>-0.01 & wT_u<0.01);
 minx = min(b10.dtheta(idt))-0.1; 
 maxx = max(b10.dtheta(idt));
@@ -556,7 +557,7 @@ maxx = max(b10.hs(jjj))+10;
 figure('position',[1,1,800,475]); 
 p1 = plot([minx maxx],[minx maxx],'k--'); hold on;
 p2 = plot([0 0],[minx maxx],'k-',[minx maxx],[0 0],'k-',[minx maxx],[minx maxx],'k--');
-p3 = plot(b10.hs(jjj),hs_id(jjj),'b.',b10.hs(jjj),d10.hs_cov(jjj),'r.');
+p3 = plot(b10.hs(jjj),hs_id(jjj),'b.',b10.hs(jjj),-d10.hs_cov(jjj),'r.');
 axis([minx maxx minx maxx]); grid; xlabel('hs bulk, W m^{-2}');
 ylabel('W m^{-2}'); 
 legend(p3,{'hs ID','hs covariance'},'location','eastoutside');
@@ -587,8 +588,8 @@ ppath = fullfile(png_path,['041_',ptitle,'_Cov_Hl.png']);
 print('-dpng',ppath);
 
 %% inertial dissipation latent heat flux vs wind speed
-miny = nanmin(hl_id_u)-30; 
-maxy = nanmax(hl_id_u)+30;
+miny = nanmin1(hl_id_u)-30; 
+maxy = nanmax1(hl_id_u)+30;
 figure('position',[1,1,800,475]);
 clear yy; yy = find(ynn_u > 2);
 plot(u_bin(yy)+0.5,hl_u(yy),'--k',u_bin(yy)+0.5,hl_id_u(yy),'-or'); 
@@ -952,7 +953,7 @@ print('-dpng',ppath);
 minx = min(hr.hs_cov)-20; 
 maxx = max(hr.hs_cov)+20;
 figure('position',[1,1,800,475]);
-plot(hr.t,hr.hs_cov,'ro',hr.t,hr.hs_cov_sds,'bd',hr.t,hr.hs,'k-',...
+plot(hr.t,-hr.hs_cov,'ro',hr.t,hr.hs_cov_sds,'bd',hr.t,hr.hs,'k-',...
     [t0 tN],[0 0],'k--'); 
 grid; axis([t0 tN minx maxx]);
 datetick('x','mm/dd','keeplimits'); ylabel('W m^{-2}');
@@ -979,7 +980,7 @@ print('-dpng',ppath);
 minx = min(hr.hs_cov)-20; 
 maxx = max(hr.hs_cov)+20;
 figure('position',[1,1,800,475]);
-plot(hr.hs,hr.hs_cov,'ro',hr.hs,hr.hs_cov_sds,'bd'); hold on;
+plot(hr.hs,-hr.hs_cov,'ro',hr.hs,hr.hs_cov_sds,'bd'); hold on;
 plot([0 0],[minx maxx],'k-',[minx maxx],[0 0],'k-',[minx maxx],[minx maxx],'k--'); grid;
 axis([minx maxx minx maxx]); legend('NOAA cov','SdS cov','location','northwest');
 xlabel('bulk hs, W m^{-2}'); ylabel('cov hs, W m^{-2}');

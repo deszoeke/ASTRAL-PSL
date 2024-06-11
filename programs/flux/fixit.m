@@ -1465,7 +1465,7 @@ wh_no_sog = find(isnan(b1.sog) == 1 & isnan(b1.sog_s) == 0);
 
 %% currents and wind speed relative to water
 doing_currents = 0;
-if doing_currents == 1
+if doing_currents
 %%% true = relative to fixed earth coords (from gps)
 %%% true_sfc = relative to ocean (from spdlog and/or currents)
 %%% odec was a true ship log for speed, not used anymore. New ships have
@@ -1537,10 +1537,10 @@ else %%% just use linear interpolation
     cdir_10 = fillmissing(cdir_10,'linear','endvalues','none');
 end
 
-disp(['missing 1 min cspd = ' sprintf('%i',length(find(isnan(cspd) == 1)))]);
-disp(['missing 1 min cdir = ' sprintf('%i',length(find(isnan(cdir) == 1)))]);
-disp(['missing 10 min cspd = ' sprintf('%i',length(find(isnan(cspd_10) == 1)))]);
-disp(['missing 10 min cdir = ' sprintf('%i',length(find(isnan(cdir_10) == 1)))]);
+disp(['missing 1 min cspd = ' sprintf('%i',length(find(isnan(cspd))))]);
+disp(['missing 1 min cdir = ' sprintf('%i',length(find(isnan(cdir))))]);
+disp(['missing 10 min cspd = ' sprintf('%i',length(find(isnan(cspd_10))))]);
+disp(['missing 10 min cdir = ' sprintf('%i',length(find(isnan(cdir_10))))]);
 
 plot_current = 0;
 if plot_current == 1

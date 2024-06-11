@@ -17,16 +17,7 @@ setup_cruise;
 % edit these as necessary for your system
 % data drive is the root directory for cruise data
 % path prog is the directory of matlab scripts for this project
-% system specific path defs
-sysType = computer;
-username=char(java.lang.System.getProperty('user.name'));
-if strncmp(sysType,'MACI64',7)     % set Mac paths
-    data_drive = '/Users/ethompson/DATA/';
-    path_prog = fullfile(data_drive,cruise,ship,'Scientific_Analysis','programs');
-elseif strncmp(sysType,'PCWIN64',7)  % set PSD DAC paths
-    data_drive = 'D:\DATA\';
-    path_prog = fullfile(data_drive,cruise,ship,'Scientific_Analysis','programs');
-end
+[data_drive, path_prog, ship] = setpaths(); % system specific paths
 
 % define path to 'Processed' folder with da files
 path_proc_data = fullfile(data_drive,cruise,ship,'flux','Processed','final');
@@ -86,8 +77,8 @@ nt = length(b10.jd);
 %% fixes
 
 % % 1/27/2022 fixed for leaving out 1E-3 for qa unit conversion. Fixed in motcorr. Just need to rerun. 
-% d10.wT_cov = ( d10.wTson_cov + 0.51*(b10.ta+C2K).*b10.usr.*b10.qsr) ./ (1 + 0.51*b10.qa*1E-3);
-% d10.hs_cov = d10.wT_cov.* b10.rhoa * cpa;
+% d10.wt_cov = ( d10.wTson_cov + 0.51*(b10.ta+C2K).*b10.usr.*b10.qsr) ./ (1 + 0.51*b10.qa*1E-3);
+% d10.hs_cov = d10.wt_cov.* b10.rhoa * cpa;
 
 %%
 
@@ -170,8 +161,9 @@ end
 %%% ASTRAL 2023... for some reason the covariance fluxes are negative? See
 %%% if a sign needs flipping... but I can't imagine why it would? 
 %%% note.... change T to t in next iteration if run_motcorr is run again.
-d10.wT_cov = -d10.wT_cov;
-d10.wT_cov_sds = -d10.wT_cov_sds;
+% needs to be lowercase wt_cov etc.
+d10.wt_cov = -d10.wt_cov;
+d10.wt_cov_sds = -d10.wt_cov_sds;
 d10.hs_cov = -d10.hs_cov;
 d10.hs_cov_sds = -d10.hs_cov_sds;
 
@@ -245,6 +237,8 @@ ii = find(b10.licor_agc>agc_lim | ...
 if strcmp(cruise,'ASTRAL_2023') == 1
    iii = find(b10.t < bad_licor_day);
    ii = unique([ii; iii]);
+else
+    iii = [];
 end
 
 d10.wq_cov(ii) = nan;
@@ -286,7 +280,7 @@ d10.hs_cov_sds(bad_qvar) = nan;
 d10.tsr_cov_sds(bad_qvar) = nan;
 d10.qsr_cov_sds(bad_qvar) = nan;
 d10.wq_cov_sds(bad_qvar) = nan;
-d10.wT_cov_sds(bad_qvar) = nan;
+d10.wt_cov_sds(bad_qvar) = nan;
 
 %% filter other covariances and ID variables for outlier values
 %%% redid good motion because it was empty before... probably because prate
@@ -322,12 +316,12 @@ clear kk; kk = find(d10.good_motion == 0 | ...
 % rdri (was +/-90) rules
 
 d10.wTson_cov(kk) = nan;
-d10.wT_cov(kk) = nan; 
+d10.wt_cov(kk) = nan; 
 d10.wq_cov(kk) = nan;
 d10.wq_cov_sds(kk) = nan; 
 d10.wh2o_cov(kk) = nan;
 d10.wco2_cov(kk) = nan;
-d10.wT_cov_sds(kk) = nan; 
+d10.wt_cov_sds(kk) = nan; 
 d10.wu_cov(kk) = nan;
 d10.wv_cov(kk) = nan;
 d10.hl_cov(kk) = nan;
@@ -378,11 +372,11 @@ d10.tau_cov(d10.wu_cov<wu_LoLim | d10.wu_cov>wu_HiLim) = nan;
 d10.wv_cov(d10.wv_cov<wv_LoLim | d10.wv_cov>wv_HiLim) = nan;
 
 d10.wTson_cov(d10.wTson_cov<wT_LoLim | d10.wTson_cov>wT_HiLim) = nan;
-d10.wT_cov(d10.wT_cov<wT_LoLim | d10.wT_cov>wT_HiLim) = nan;
-d10.hs_cov(d10.wT_cov<wT_LoLim | d10.wT_cov>wT_HiLim) = nan;
+d10.wt_cov(d10.wt_cov<wT_LoLim | d10.wt_cov>wT_HiLim) = nan;
+d10.hs_cov(d10.wt_cov<wT_LoLim | d10.wt_cov>wT_HiLim) = nan;
 
-d10.wT_cov_sds(d10.wT_cov_sds<wT_LoLim | d10.wT_cov_sds>wT_HiLim) = nan;
-d10.hs_cov_sds(d10.wT_cov_sds<wT_LoLim | d10.wT_cov_sds>wT_HiLim) = nan;
+d10.wt_cov_sds(d10.wt_cov_sds<wT_LoLim | d10.wt_cov_sds>wT_HiLim) = nan;
+d10.hs_cov_sds(d10.wt_cov_sds<wT_LoLim | d10.wt_cov_sds>wT_HiLim) = nan;
 
 d10.wq_cov(d10.wq_cov<wq_LoLim | d10.wq_cov>wq_HiLim) = nan;
 d10.hl_cov(d10.wq_cov<wq_LoLim | d10.wq_cov>wq_HiLim) = nan;
@@ -426,15 +420,15 @@ d10.Cqb(bad_cqb) = nan;
 d10.Cqab(bad_cqab) = nan;
 
 % filter for Ts noise limit and variance
-noisy_ct = (d10.Tson_noise > Tnoise_lim | d10.Tvar>Tson_var_lim);
+noisy_ct = (d10.tson_noise(:) > Tnoise_lim | d10.Tvar(:) > Tson_var_lim);
 d10.Cta(noisy_ct) = nan;
 d10.Ctb(noisy_ct) = nan;
 d10.Ctab(noisy_ct) = nan;
 d10.hs_cov(noisy_ct) = nan;
 d10.hs_cov_sds(noisy_ct) = nan;
-d10.wTson_cov(noisy_ct) = nan;
-d10.wT_cov(noisy_ct) = nan; 
-d10.wT_cov_sds(noisy_ct) = nan; 
+d10.wtson_cov(noisy_ct) = nan;
+d10.wt_cov(noisy_ct) = nan; 
+d10.wt_cov_sds(noisy_ct) = nan; 
 
 % Cs is the weighted average of cu and cw for smoother structure function
 % cs = (cu+.75*cw)/2;
@@ -521,11 +515,11 @@ the_sign = sign_wtv;
 % should this be sign of tsr_son? or tsr? or dt skin - air? or dtheta?
 tsr_id_son_ab    = sqrt(d10.Ctab     .*zu^0.667./psi_ft(b10.zeta)).*the_sign; 
 tsr_id_son_a     = sqrt(d10.Cta      .*zu^0.667./psi_ft(b10.zeta)).*the_sign; 
-tsr_id_son_b      = sqrt(d10.Ctb      .*zu^0.667./psi_ft(b10.zeta)).*the_sign; 
+tsr_id_son_b     = sqrt(d10.Ctb      .*zu^0.667./psi_ft(b10.zeta)).*the_sign; 
 
 tsr_id_son_ab    = real(tsr_id_son_ab);
 tsr_id_son_a     = real(tsr_id_son_a);
-tsr_id_son_b      = real(tsr_id_son_b);
+tsr_id_son_b     = real(tsr_id_son_b);
 
 tsr_id_ab       = tsr_id_son_ab  -0.51*(b10.ta+C2K).*b10.qsr; % moisture corrrected tsr_id
 tsr_id_a        = tsr_id_son_a   -0.51*(b10.ta+C2K).*b10.qsr; % moisture corrrected tsr_id
@@ -667,8 +661,8 @@ d10.hs_cov_sds(wh_bad_ship) = nan;
 d10.tau_cov(wh_bad_ship) = nan;
 d10.tau_cov_cross(wh_bad_ship) = nan;
 d10.wTson_cov(wh_bad_ship) = nan;
-d10.wT_cov(wh_bad_ship) = nan; 
-d10.wT_cov_sds(wh_bad_ship) = nan; 
+d10.wt_cov(wh_bad_ship) = nan; 
+d10.wt_cov_sds(wh_bad_ship) = nan; 
 d10.wq_cov(wh_bad_ship) = nan;
 d10.wq_cov_sds(wh_bad_ship) = nan; 
 d10.wu_cov(wh_bad_ship) = nan;
@@ -693,8 +687,8 @@ for i=1:nn_zeta
    clear ii; ii = find(b10.zeta(jjj)>zeta_fake_log(i) & ...
        b10.zeta(jjj)<zeta_fake_log(i+1) & isfinite(d10.Csab(jjj)));
    if isfinite(jjj(ii))
-      zeta_log_bin(i) = nanmedian(b10.zeta(jjj(ii)));
-      cs_plot(i) = nanmedian(d10.Csab(jjj(ii))./b10.usr(jjj(ii)).^2*zu^.667);
+      zeta_log_bin(i) = nanmedian1(b10.zeta(jjj(ii)));
+      cs_plot(i) = nanmedian1(d10.Csab(jjj(ii))./b10.usr(jjj(ii)).^2*zu^.667);
       cnt(i) = length(jjj(ii));
    else
       zeta_log_bin(i) = nan;
@@ -711,7 +705,7 @@ hl_id_plot(hl_id_plot>1000) = nan;
 %%% NOTE: for now we use the ab method but really we should compare again
 %%% and choose what is best as a research effort.
 %%% other way of doing it: avg of ID and cov..
-% hlm(jjj) = nanmean(hl_id(jjj), hl_cov(jjj)); 
+% hlm(jjj) = nanmean1(hl_id(jjj), hl_cov(jjj)); 
 % maybe b is better... if you use structure functions to compute
 % stabilitday... that's what used to be done... but it can create a numerical
 % problem. Spectral fit method is better ideallday... but also subject to
@@ -743,10 +737,10 @@ for i=1:length(u_bin)
         ynn_u(i) = 0;
         dq_u(i) = nan;
    else
-        hl_id_u(i) = nanmedian(hl_id_plot(ii(ppp)));
-        hl_u(i) = nanmedian(b10.hl(ii(ppp)));
+        hl_id_u(i) = nanmedian1(hl_id_plot(ii(ppp)));
+        hl_u(i) = nanmedian1(b10.hl(ii(ppp)));
         ynn_u(i) = length(ppp);
-        dq_u(i) = nanmedian(b10.qs(ii(ppp))-b10.qa(ii(ppp)))-nanmean(b10.dq_skin(ii(ppp)));
+        dq_u(i) = nanmedian1(b10.qs(ii(ppp))-b10.qa(ii(ppp)))-nanmean1(b10.dq_skin(ii(ppp)));
     end
 end
  
@@ -759,8 +753,8 @@ end
 % usr_cov = (wu_cov.^2 + wv_cov.^2).^(1/4); % this is a common mistake, 
 d10.usr_cov = (d10.wu_cov.^2).^(1/4); % wu_cov has neg numbers so need to do it this way for algebra's sake
 d10.qsr_cov = -1E-3*d10.wq_cov./d10.usr_cov;
-d10.tsr_cov = -d10.wT_cov./d10.usr_cov;
-d10.tsr_cov_sds = -d10.wT_cov_sds./d10.usr_cov;
+d10.tsr_cov = -d10.wt_cov./d10.usr_cov;
+d10.tsr_cov_sds = -d10.wt_cov_sds./d10.usr_cov;
 d10.qsr_cov_sds = -1E-3*d10.wq_cov_sds./d10.usr_cov;
 
 clear jjjj; jjjj =  find(good_id == 1 & isfinite(usr_id)); 
@@ -907,12 +901,14 @@ hr.missingSon = interval_sum_var(b10.jd, d10.missingSon, jd_h_bin);
 hr.badSon = interval_sum_var(b10.jd, d10.badSon, jd_h_bin);
 hr.tilt = interval_avg_dir(d10.jd,d10.tilt,jd_h_bin); 
 
-
-[hr.cspd, hr.cdir]            =  interval_avg_vect(b10.jd, b10.cspd, b10.cdir, jd_h_bin);
-if have_adcp_data == 1
-    [hr.cspd_adcp, hr.cdir_adcp]  =  interval_avg_vect(b10.jd, b10.cspd_adcp, b10.cdir_adcp, jd_h_bin);
+do_currents = false;
+if do_currents
+    [hr.cspd, hr.cdir]            =  interval_avg_vect(b10.jd, b10.cspd, b10.cdir, jd_h_bin);
+    if have_adcp_data == 1
+        [hr.cspd_adcp, hr.cdir_adcp]  =  interval_avg_vect(b10.jd, b10.cspd_adcp, b10.cdir_adcp, jd_h_bin);
+    end
+    [hr.cspd_spdlog, hr.cdir_spdlog]=  interval_avg_vect(b10.jd, b10.cspd_spdlog, b10.cdir_spdlog, jd_h_bin);
 end
-[hr.cspd_spdlog, hr.cdir_spdlog]=  interval_avg_vect(b10.jd, b10.cspd_spdlog, b10.cdir_spdlog, jd_h_bin);
 [hr.wspd, hr.wdir]            =  interval_avg_vect(b10.jd, b10.wspd, b10.wdir, jd_h_bin);
 [hr.wspd_new, hr.wdir_new]    =  interval_avg_vect(b10.jd, d10.wspd_new, d10.wdir_new, jd_h_bin);
 [hr.wspd_s, hr.wdir_s]        =  interval_avg_vect(b10.jd, b10.wspd_s, b10.wdir_s, jd_h_bin);
@@ -941,7 +937,9 @@ end
 
 %% fix hed, cog, sog if needed
 % These are equivalent to the ones below, and so are not needed. 
-hr.spdlog_s = sqrt(hr.spdlog_u_s.^2 + hr.spdlog_v_s.^2);  % recompute sog from speed components
+if do_currents % not sure, but we don't need it anyway?!?!
+    hr.spdlog_s = sqrt(hr.spdlog_u_s.^2 + hr.spdlog_v_s.^2);  % recompute sog from speed components
+end
 
 hr.sog_s = sqrt(hr.sogN_s.^2 + hr.sogE_s.^2);  % recompute sog from speed components
 hr.sog = sqrt(hr.sogN.^2 + hr.sogE.^2);  % recompute sog from speed components
@@ -1007,11 +1005,12 @@ hr.ched_std = sqrt(interval_avg_var(b10.jd, d10.ched_std.^2, jd_h_bin));
 hr.shed_std_s = sqrt(interval_avg_var(b10.jd, b10.shed_std_s.^2, jd_h_bin));
 hr.ched_std_s = sqrt(interval_avg_var(b10.jd, b10.ched_std_s.^2, jd_h_bin));
 %%% note --> these will all change next time I rerun evalflux and motcorr. 
+% commented out don't exist yet
 % hr.spdlog_std_s = sqrt(interval_avg_var(b10.jd, b10.spdlog_std_s.^2, jd_h_bin));         
-hr.licor_H2O_std = sqrt(interval_avg_var(b10.jd, d10.licor_H2O_std.^2, jd_h_bin));
+% hr.licor_H2O_std = sqrt(interval_avg_var(b10.jd, d10.licor_H2O_std.^2, jd_h_bin));
 hr.licor_qa_std = sqrt(interval_avg_var(b10.jd, d10.licor_qa_std.^2, jd_h_bin));
-hr.licor_CO2_std = sqrt(interval_avg_var(b10.jd, d10.licor_CO2_std.^2, jd_h_bin));
-hr.licor_Pbox_std = sqrt(interval_avg_var(b10.jd, d10.licor_Pbox_std.^2, jd_h_bin));
+% hr.licor_CO2_std = sqrt(interval_avg_var(b10.jd, d10.licor_CO2_std.^2, jd_h_bin));
+% hr.licor_Pbox_std = sqrt(interval_avg_var(b10.jd, d10.licor_Pbox_std.^2, jd_h_bin));
 
 %%     special special or recalculations after averaging
 
@@ -1108,7 +1107,7 @@ hr2.Csab(isnan(hr2.Cwab)) = hr2.Cuab(isnan(hr2.Cwab) == 1);
 % ID stars and fluxes
 % convert complex numbers from psi_fu(zetay)
 a = psi_fu(hr.zeta);
-a(isnan(a)) = nanmedian(a);
+a(isnan(a)) = nanmedian1(a);
 hr2.usr_id = sqrt(hr2.Csab.*zu^0.667./a);  
 % hr2.tau_id = hr.rhoa.*hr2.usr_id.*hr2.usr_id./hr.gust;  % the bulk method
 % includes gustiness but the ID method doesn't need it. taken gustiness
@@ -1127,13 +1126,13 @@ hr2.hl_id = -hr.rhoa.*hr.Le_w.*hr2.qsr_id.*hr2.usr_id + hr.hlwebb;
 % cov fluxes
 
 % from motcorr:        
-% wT_cov = ( wTson_cov + 0.51*(x.ta+C2K).*x.usr.*x.qsr) ./ (1 + 0.51*x.qa*1E-3);
-% hr2.wT_cov = hr.wTson_cov+0.51*(hr.ta+C2K).*hr.usr.*hr.qsr ./ (1 + 0.51*x.qa*1E-3);
-% this is basically equivalent to hr.wT_cov but lacks the thresholding/filtering from before
+% wt_cov = ( wTson_cov + 0.51*(x.ta+C2K).*x.usr.*x.qsr) ./ (1 + 0.51*x.qa*1E-3);
+% hr2.wt_cov = hr.wTson_cov+0.51*(hr.ta+C2K).*hr.usr.*hr.qsr ./ (1 + 0.51*x.qa*1E-3);
+% this is basically equivalent to hr.wt_cov but lacks the thresholding/filtering from before
 % so deem it unnecessary.
 
-hr2.hs_cov = hr.rhoa*cpa.*hr.wT_cov;
-hr2.hs_cov_sds = hr.rhoa*cpa.*hr.wT_cov_sds;
+hr2.hs_cov = hr.rhoa*cpa.*hr.wt_cov;
+hr2.hs_cov_sds = hr.rhoa*cpa.*hr.wt_cov_sds;
 hr2.hl_cov = 1E-3*hr.rhoa.*hr.Le_sw.*hr.wq_cov + hr.hlwebb;
 hr2.hl_cov_sds = 1E-3*hr.rhoa.*hr.Le_sw.*hr.wq_cov_sds; % simon's version is already webb corrected
 
@@ -1230,14 +1229,14 @@ for i=1:length(hr_u_bin)
         hr_nh_u(i) = 0;
 %        nu(i) = nan;
     else
-        hr_hl_id_mean_u(i) = nanmean(hr.hl_id(ii(jj)));
-        hr_hl_id_med_u(i) = nanmedian(hr.hl_id(ii(jj)));
-        hr_hl_cov_mean_u(i) = nanmean(hr.hl_cov(ii(jj)));
-        hr_hl_cov_med_u(i) = nanmedian(hr.hl_cov(ii(jj)));
-        hr_hl_mean_u(i) = nanmean(hr.hl(ii(jj)));
-        hr_hl_med_u(i) = nanmedian(hr.hl(ii(jj)));
+        hr_hl_id_mean_u(i) = nanmean1(hr.hl_id(ii(jj)));
+        hr_hl_id_med_u(i) = nanmedian1(hr.hl_id(ii(jj)));
+        hr_hl_cov_mean_u(i) = nanmean1(hr.hl_cov(ii(jj)));
+        hr_hl_cov_med_u(i) = nanmedian1(hr.hl_cov(ii(jj)));
+        hr_hl_mean_u(i) = nanmean1(hr.hl(ii(jj)));
+        hr_hl_med_u(i) = nanmedian1(hr.hl(ii(jj)));
         hr_nh_u(i) = length(jj);
-%        nu(i) = nanmean(ywspd(ii(jj)));
+%        nu(i) = nanmean1(ywspd(ii(jj)));
     end
 end
 % 
@@ -1265,14 +1264,14 @@ for i=1:length(hr_u_bin)
         hr_ns_u(i) = 0;
 %        nu(i) = nan;
     else
-        hr_hs_id_mean_u(i) = nanmean(hr.hs_id(ii(jj)));
-        hr_hs_id_med_u(i) = nanmedian(hr.hs_id(ii(jj)));
-        hr_hs_cov_mean_u(i) = nanmean(hr.hs_cov(ii(jj)));
-        hr_hs_cov_med_u(i) = nanmedian(hr.hs_cov(ii(jj)));
-        hr_hs_mean_u(i) = nanmean(hr.hs(ii(jj)));
-        hr_hs_med_u(i) = nanmedian(hr.hs(ii(jj)));
+        hr_hs_id_mean_u(i) = nanmean1(hr.hs_id(ii(jj)));
+        hr_hs_id_med_u(i) = nanmedian1(hr.hs_id(ii(jj)));
+        hr_hs_cov_mean_u(i) = nanmean1(hr.hs_cov(ii(jj)));
+        hr_hs_cov_med_u(i) = nanmedian1(hr.hs_cov(ii(jj)));
+        hr_hs_mean_u(i) = nanmean1(hr.hs(ii(jj)));
+        hr_hs_med_u(i) = nanmedian1(hr.hs(ii(jj)));
         hr_ns_u(i) = length(jj);
-%        nu(i) = nanmean(ywspd(ii(jj)));
+%        nu(i) = nanmean1(ywspd(ii(jj)));
     end
 end
 % 
@@ -1311,17 +1310,17 @@ for i=1:length(hr_u_bin)
       hr_tau_cov_cross_mean_u(i) = nan;
       hr_tau_id_mean_u(i) = nan;
     else
-      hr_tau_med_u(i) = nanmedian(hr.tau(ii(ppp)));
-      hr_tau_cov_med_u(i) = nanmedian(hr.tau_cov(ii(ppp)));
-      hr_tau_cov_cross_med_u(i) = nanmedian(hr.tau_cov_cross(ii(ppp)));
-      hr_tau_id_med_u(i) = nanmedian(hr.tau_id(ii(ppp)));
-      hr_wu_med_u(i) = nanmedian(hr.wu_cov(ii(ppp)));
-      hr_wv_med_u(i) = nanmedian(hr.wv_cov(ii(ppp)));
+      hr_tau_med_u(i) = nanmedian1(hr.tau(ii(ppp)));
+      hr_tau_cov_med_u(i) = nanmedian1(hr.tau_cov(ii(ppp)));
+      hr_tau_cov_cross_med_u(i) = nanmedian1(hr.tau_cov_cross(ii(ppp)));
+      hr_tau_id_med_u(i) = nanmedian1(hr.tau_id(ii(ppp)));
+      hr_wu_med_u(i) = nanmedian1(hr.wu_cov(ii(ppp)));
+      hr_wv_med_u(i) = nanmedian1(hr.wv_cov(ii(ppp)));
       hr_nt_u(i) = length(ppp);
-      hr_tau_mean_u(i) = nanmean(hr.tau(ii(ppp)));
-      hr_tau_cov_mean_u(i) = nanmean(hr.tau_cov(ii(ppp)));
-      hr_tau_cov_cross_mean_u(i) = nanmean(hr.tau_cov_cross(ii(ppp)));
-      hr_tau_id_mean_u(i) = nanmean(hr.tau_id(ii(ppp)));
+      hr_tau_mean_u(i) = nanmean1(hr.tau(ii(ppp)));
+      hr_tau_cov_mean_u(i) = nanmean1(hr.tau_cov(ii(ppp)));
+      hr_tau_cov_cross_mean_u(i) = nanmean1(hr.tau_cov_cross(ii(ppp)));
+      hr_tau_id_mean_u(i) = nanmean1(hr.tau_id(ii(ppp)));
     end
 end
 
@@ -1418,10 +1417,12 @@ else
     disp('good news -> time has no NaN values');
 end
 
-disp(['  e1 lasts from ' datestr(e1.t(1),0)    ' - ' datestr(e1.t(end),0) ]);
-disp([' e10 lasts from ' datestr(e10.t(1),0)   ' - ' datestr(e10.t(end),0) ]);
-disp([' e60 lasts from ' datestr(e60.t(1),0)   ' - ' datestr(e60.t(end),0) ]);
-disp(['eday lasts from ' datestr(eday.t(1),0)  ' - ' datestr(eday.t(end),0) ]);
+if length(e1.t) > 0
+    disp(['  e1 lasts from ' datestr(e1.t(1),0)    ' - ' datestr(e1.t(end),0) ]);
+    disp([' e10 lasts from ' datestr(e10.t(1),0)   ' - ' datestr(e10.t(end),0) ]);
+    disp([' e60 lasts from ' datestr(e60.t(1),0)   ' - ' datestr(e60.t(end),0) ]);
+    disp(['eday lasts from ' datestr(eday.t(1),0)  ' - ' datestr(eday.t(end),0) ]);
+end
 
 %%% save
 ename_1 = [e_outdir cruise '_1min_' file_out_version '.mat'];
