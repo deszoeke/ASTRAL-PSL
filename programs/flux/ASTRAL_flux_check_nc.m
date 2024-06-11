@@ -9,22 +9,26 @@ close all
 
 cruise = 'ASTRAL_2024';
 project = 'ASTRAL';
-ship = 'Thompson';
+% ship = 'Thompson';
+ship = 'PSL'
 theyear = 2024;
 yrstr = '2024';
 
-thedir = ['/Users/ethompson/DATA/' cruise '/' ship '/flux/Processed/final'];
-
-ncname1= '/Users/ethompson/DATA/ASTRAL_2024/Thompson/flux/Processed/final/ASTRAL-nav-met-sea-1min_RV-Thompson_20240428_R1_thru_20240513.nc';
-ncname10= '/Users/ethompson/DATA/ASTRAL_2024/Thompson/flux/Processed/final/ASTRAL-nav-met-sea-flux-10min_RV-Thompson_20240428_R1_thru_20240513.nc';
+% thedir = ['/Users/ethompson/DATA/' cruise '/' ship '/flux/Processed/final'];
+% ncname1= '/Users/ethompson/DATA/ASTRAL_2024/Thompson/flux/Processed/final/ASTRAL-nav-met-sea-1min_RV-Thompson_20240428_R1_thru_20240513.nc';
+% ncname10= '/Users/ethompson/DATA/ASTRAL_2024/Thompson/flux/Processed/final/ASTRAL-nav-met-sea-flux-10min_RV-Thompson_20240428_R1_thru_20240513.nc';
 % ncname60= '/Users/ethompson/DATA/ASTRAL_2024/Thompson/flux/Processed/final/ASTRAL-nav-met-sea-60min_RV-Thompson_20240428_R1_thru_20240513.nc';
 
-plotdir = ['/Users/ethompson/DATA/' cruise '/' ship '/flux/Processed_Images/nccheck/'];
+thedir = fullfile('/Users/deszoeks/Data/ASTRAL_2024/PSL/flux/Processed/final/');
+ncname1 =  fullfile(thedir, 'ASTRAL-nav-met-sea-1min_RV-PSL_20240428_R1_thru_20240609.nc');
+ncname10 = fullfile(thedir, 'ASTRAL-nav-met-sea-flux-10min_RV-PSL_20240428_R1_thru_20240609.nc');
+
+plotdir = fullfile('/Users/deszoeks/Data/', cruise, ship, '/flux/Processed_Images/nccheck/');
 mkdir(plotdir);
 
 restoredefaultpath
-cd(['/Users/ethompson/DATA/' cruise '/' ship '/scientific_analysis/programs/flux/']);
-addpath(['/Users/ethompson/DATA/' cruise '/' ship '/scientific_analysis/programs/flux/subs/']);
+cd(fullfile(     '/Users/deszoeks/Projects',project, ship, '/programs/flux/'));
+addpath(fullfile('/Users/deszoeks/Projects',project, ship, '/programs/flux/subs/'));
 rehash toolboxcache;
 
 
