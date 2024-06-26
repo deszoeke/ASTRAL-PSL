@@ -36,22 +36,22 @@ heading = unwrap(heading)';
 
 % euler angles
 %%% plat_acc and plat_rate = [3, 36000]... heading = [1, 36000]
-wh_heading_valid = find(isfinite(heading) == 1);
-[euler_valid,~] = angles(ahi,bhi,fsam,plat_acc(:,wh_heading_valid),plat_rate(:,wh_heading_valid),heading(wh_heading_valid));
 euler = nan(3,36000);
-euler(:,wh_heading_valid) = euler_valid(:,:);
-
 % platform velocities, displacements and accelerations
-[uvwplat_valid,xyzplat_valid,accplat_valid] = accels2(bhi,ahi,fsam,plat_acc(:,wh_heading_valid),euler_valid);
 uvwplat = nan(3,36000);
 xyzplat = nan(3,36000);
 accplat = nan(3,36000);
+wh_heading_valid = find(isfinite(heading)); % --> logical indexing easier to keep working?
+[euler_valid,~] = angles(ahi,bhi,fsam,plat_acc(:,wh_heading_valid),plat_rate(:,wh_heading_valid),heading(wh_heading_valid));
+euler(:,wh_heading_valid) = euler_valid(:,:);
+[uvwplat_valid,xyzplat_valid,accplat_valid] = accels2(bhi,ahi,fsam,plat_acc(:,wh_heading_valid),euler_valid);
 uvwplat(:,wh_heading_valid) = accplat_valid;
 xyzplat(:,wh_heading_valid) = accplat_valid;
 accplat(:,wh_heading_valid) = accplat_valid;
+% otherwise euler, uvwplat,... stay nan
 
 % rotate uvw into earth frame
-R = [sens_disp(1); sens_disp(2); sens_disp(3)] * ones(1,lengt(son_vel));
+R = [sens_disp(1); sens_disp(2); sens_disp(3)] * ones(1,length(son_vel));
 R_valid = R(:,wh_heading_valid);
 uvw_valid = neaqs_trans(son_vel(:,wh_heading_valid)+cross(plat_rate(:,wh_heading_valid),R_valid),euler_valid,0);
 uvw = nan(3,36000);

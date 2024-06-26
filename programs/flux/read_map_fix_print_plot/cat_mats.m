@@ -17,6 +17,8 @@ ship = 'PSL';
 
 
 %%% choose system specific path defs... or define manually below instead
+% [data_drive, path_prog, ship] = setpaths(); % system specific paths as
+% below...
 sysType = computer;
 username=char(java.lang.System.getProperty('user.name'));
 if strcmp(username,'deszoeks')
@@ -29,6 +31,7 @@ elseif strncmp(sysType,'PCWIN64',7)  % set PSD DAC paths
     data_drive = 'D:\DATA\';
     path_prog = fullfile(data_drive,cruise,ship,'Scientific_analysis','programs');
 end
+
 
 
 %%% **** decide whether you want to concatenate 1-min files or 10-min files,

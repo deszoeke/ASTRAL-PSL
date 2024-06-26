@@ -43,7 +43,7 @@ have_lat_data = 1;
 % separate program to run all the python codes outside of this code.
 % ^Yes. Matlab can't pipe to [mini]conda environments, so
 % one has to run python converters from outside matlab.
-jdStart = 160; jdStop = 160;
+jdStart = 164; jdStop = 165;
 
 min10 = datenum(2018,8,27,0,10,0) - datenum(2018,8,27,0,0,0);
 

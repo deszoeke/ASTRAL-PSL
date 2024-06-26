@@ -127,7 +127,8 @@ setup_cruise;
 % Dates: ASTRAL 2024
 % stjd = 119; endjd = 134; % leg 1
 % stjd = 139; endjd = 161; % leg 2
-stjd = 164; endjd = 165;
+stjd = 119; endjd = 134;
+% jd 162 crashes bc of no good heading data?
 
 [data_drive, path_prog, ship] = setpaths(); % system specific paths
 
@@ -224,10 +225,15 @@ load(infile_10);
 infile_1 = [indir cruise '_1min_nav_met_sea_flux_' in_version '.mat'];
 load(infile_1);
 
-parens = @(x,i) x(i)
+parens = @(x,i) x(i);
 
 %% ----------Main loop----------
-for ddd=stjd:endjd  % iterate over days
+% stjd = 119; endjd = 134; % leg 1
+% stjd = 139; endjd = 161; % leg 2
+% for ddd=stjd:endjd  % iterate over days
+% for ddd=[119:134 139:165]  % iterate over days
+for ddd = 164:165
+
     [m,d] = yd2md(yr, ddd);
     Vdate = [yr m d];
     jd_str = sprintf('%03i',ddd);
@@ -346,6 +352,18 @@ for ddd=stjd:endjd  % iterate over days
                                        % how much the uvw was shifted. W and platform vertical
                                        % velocity shift uvw accordingly and sum with uvwplat
                                        % to correct winds
+
+        %% SPdeS write out motion correction data at this point to use offline
+        vars = split('uvw tson_10Hz accplat uvwplat xyzplat euler plat_rate uvw_raw uvw_motcorr lagmat');
+        for i = 1:length(vars)
+            Mot.(vars{i}) = eval(vars{i})
+        end
+        save(fullfile('/Users/deszoeks/Data/ASTRAL_2024/PSL/flux/Processed/Mot', sprintf('Mot_%03d_%02d.mat',ddd, hhh)), 'Mot')
+    end
+end
+
+
+        %{
 
         %% correct uv for ship velocity
         uvw_str = uvw.*0;   % preallocate output arrays
@@ -1295,3 +1313,4 @@ for ddd=stjd:endjd  % iterate over days
 end % end daily loop
 
 disp('END OF motcorr PROCESSING')
+        %}

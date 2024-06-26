@@ -3,6 +3,21 @@
 %%%    ejt April 2020
 
 %%%    this info used to be the PAR file of Chris's workflow
+
+%{
+ASTRAL sensor heights table from Ludovic, 2024-6-14
+Sensor                  height from water line (m)
+Atmospheric pressure    10.1
+PSP/PIR                 11.4
+fast pressure low       11.3
+fast pressure high      15.5
+LICOR                   15.7
+T/RH                    15.2
+ORG                     15.7
+motion pack             15.7
+sonic                   16.5
+Riegl laser             14.5
+%}
 % We are in port at the end of Leg 1. I'll try uploading day 119-134 in one compressed file to the share drive (Astral Ekamsat 2024/TGT transit 1 day data sample) It's ~750mb but I think the ship network can handle that. As discussed with Ludovic, I'll adjust the reigel while we are in port to get a better return on it, and check that all boxes and instruments are secure for Leg 2 while I'm up there.
 
 % Sea snake got pulled at 0230utc jd135. It'll get back in ~jd138 as we exit EEZ for Leg2
@@ -107,15 +122,15 @@ zlic = 15.7; % by design of setup supposed to be 1 m below sonic
 
 ins_wxt = '--'; 
 loc_wxt = '--';
-zwxt = nan;
+zwxt = nan; 
 
 % ins_wxt = 'RM Young WXT520 weather station, SN# --'; 
 % loc_wxt = 'starboard forward O2 deck rail';
 % zwxt = 11.31;
 
 ins_rosr = ['--']; 
-loc_rosr = '--';
-zrosr = NaN;
+loc_rosr = '--'; % atop O2 deck rail, port
+zrosr = NaN; 
 
 % ins_rosr = ['Remote Measurements & Research Co. Remote Ocean Surface '...
 %     'Radiometer (RMR Co. ROSR), SN# 3']; 
@@ -131,6 +146,8 @@ loc_gps = 'starboard forward O2 deck rail';
 zgps = 11.4;
 
 ins_wave = 'WaMoS system using Revelle science-dedicated Furuno X-band radar'; 
+% this is the laser Riegl height. 
+% TGT has WaMoS atop the flying bridge.
 loc_wave = 'main mast';
 zwave = 14.5; 
  
